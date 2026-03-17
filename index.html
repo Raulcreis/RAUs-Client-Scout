@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prospect Scout — Photo & Video Client Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-primary:#0F1318;--bg-secondary:#161B22;--bg-card:#1C222B;--bg-hover:#242B36;
+  --border:#2D3748;--text-primary:#E8ECF1;--text-secondary:#8B95A5;--text-muted:#5A6577;
+  --accent:#D4A574;--accent-glow:rgba(212,165,116,0.15);--success:#5BBA6F;--danger:#E05555;
+  --radius:10px;--shadow:0 2px 12px rgba(0,0,0,0.3);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg-primary);color:var(--text-primary)}
+.app-container{min-height:100vh;display:flex;flex-direction:column}
+.app-header{background:var(--bg-secondary);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.app-title{font-family:'Sora',sans-serif;font-size:26px;font-weight:800;color:var(--accent);letter-spacing:-0.5px}
+.app-subtitle{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.nav-tabs{display:flex;gap:4px;background:var(--bg-primary);padding:3px;border-radius:8px}
+.nav-tab{padding:8px 18px;border:none;background:transparent;color:var(--text-secondary);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;transition:all .2s}
+.nav-tab:hover{color:var(--text-primary);background:var(--bg-hover)}
+.nav-tab.active{color:var(--accent);background:var(--bg-card);box-shadow:var(--shadow)}
+.main-content{flex:1;padding:24px 28px;max-width:1400px;width:100%;margin:0 auto}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;color:var(--text-primary)}
+.btn{padding:8px 16px;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:var(--bg-primary)}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--bg-hover);color:var(--text-primary);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost{background:transparent;color:var(--text-secondary);padding:6px 10px;border:none;cursor:pointer}
+.btn-ghost:hover{color:var(--accent)}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid rgba(224,85,85,.3)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.input-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.input-label{font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.8px}
+.input-field{padding:9px 12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.input-field:focus{border-color:var(--accent)}
+.input-field::placeholder{color:var(--text-muted)}
+select.input-field{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B95A5' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+textarea.input-field{resize:vertical;min-height:60px}
+.prospect-row{display:grid;grid-template-columns:32px 1.5fr 1fr 1fr .8fr 120px;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer}
+.prospect-row:hover{background:var(--bg-hover)}
+.prospect-name{font-weight:600;font-size:14px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prospect-address{font-size:12px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prospect-contact{font-size:12px;color:var(--text-secondary)}
+.prospect-contact a{color:var(--accent);text-decoration:none}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.checkbox-wrap{width:20px;height:20px;border:2px solid var(--border);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.checkbox-wrap.checked{background:var(--accent);border-color:var(--accent)}
+.checkbox-wrap.checked::after{content:'✓';color:var(--bg-primary);font-size:12px;font-weight:700}
+.status-select{padding:4px 8px;border-radius:4px;font-size:11px;font-weight:600;border:1px solid transparent;cursor:pointer;outline:none;font-family:'DM Sans',sans-serif}
+.cat-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.stats-bar{display:flex;gap:24px;padding:14px 20px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;flex-wrap:wrap}
+.stat-item{display:flex;flex-direction:column;gap:2px}
+.stat-value{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;color:var(--accent)}
+.stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px}
+.search-controls{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.search-controls .input-group{margin-bottom:0;flex:1;min-width:160px}
+.map-container{width:100%;height:380px;border-radius:var(--radius);background:var(--bg-primary);border:1px solid var(--border);overflow:hidden;position:relative}
+.map-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-muted);gap:8px;font-size:13px}
+.results-list{max-height:500px;overflow-y:auto}
+.results-list::-webkit-scrollbar{width:6px}
+.results-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.route-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.route-stop{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px dashed var(--border)}
+.route-stop:last-child{border-bottom:none}
+.stop-number{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--bg-primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:28px;width:90%;max-width:520px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-title{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;margin-bottom:20px;color:var(--accent)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text-muted)}
+.empty-state span{font-size:40px;display:block;margin-bottom:12px}
+.empty-state p{font-size:14px;max-width:360px;margin:0 auto;line-height:1.6}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-secondary);transition:all .2s;font-family:'DM Sans',sans-serif}
+.chip:hover{border-color:var(--text-secondary)}
+.chip.active{background:var(--accent-glow);border-color:var(--accent);color:var(--accent)}
+.category-summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid var(--accent);border-radius:8px;padding:12px 20px;color:var(--text-primary);font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:300;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.pulse{animation:pulse 2s ease-in-out infinite}
+.progress-bar{width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:12px 0}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s ease}
+.search-status{font-size:12px;color:var(--text-muted);margin-top:6px;min-height:18px}
+input[type="range"]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--accent);border-radius:50%;cursor:pointer}
+.autocomplete-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;max-height:280px;overflow-y:auto;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.autocomplete-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
+.autocomplete-item:hover{background:var(--bg-hover)}
+.autocomplete-name{font-size:13px;font-weight:600;color:var(--text-primary)}
+.autocomplete-detail{font-size:11px;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.debug-console{position:fixed;bottom:0;left:0;right:0;height:200px;background:#0a0d11;border-top:2px solid var(--accent);z-index:250;display:flex;flex-direction:column;font-family:'Courier New',monospace}
+.debug-header{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#111519;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--accent)}
+.debug-body{flex:1;overflow-y:auto;padding:6px 12px;font-size:11px;line-height:1.6}
+.debug-line{padding:1px 0}
+.debug-line .ts{color:var(--text-muted);margin-right:8px}
+.debug-line.ok{color:#5BBA6F} .debug-line.warn{color:#D4A574} .debug-line.err{color:#E05555} .debug-line.info{color:#6B8FA3}
+/* Readability mode */
+.readable .app-title{font-size:30px}
+.readable .app-subtitle{font-size:13px;font-weight:600}
+.readable .card-title{font-size:21px;font-weight:800}
+.readable .nav-tab{font-size:15px;font-weight:600;padding:10px 22px}
+.readable .btn{font-size:15px;font-weight:600;padding:10px 20px}
+.readable .btn-sm{font-size:13px;padding:7px 14px}
+.readable .input-label{font-size:13px;font-weight:700}
+.readable .input-field{font-size:15px;padding:11px 14px}
+.readable .prospect-name{font-size:16px;font-weight:700}
+.readable .prospect-address{font-size:14px}
+.readable .prospect-contact{font-size:14px}
+.readable .cat-tag{font-size:13px;font-weight:700;padding:4px 10px}
+.readable .status-select{font-size:13px;font-weight:700;padding:6px 10px}
+.readable .chip{font-size:14px;font-weight:600;padding:7px 16px}
+.readable .stat-value{font-size:28px;font-weight:800}
+.readable .stat-label{font-size:13px;font-weight:600}
+.readable .modal-title{font-size:24px;font-weight:800}
+.readable .autocomplete-name{font-size:15px;font-weight:700}
+.readable .autocomplete-detail{font-size:13px}
+.hidden{display:none!important}
+@media(max-width:900px){
+  .prospect-row{grid-template-columns:28px 1fr 1fr;font-size:12px}
+  .grid-2,.settings-grid{grid-template-columns:1fr}
+  .stats-bar{gap:16px}
+  .search-controls{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div id="app" class="app-container">
+  <!-- Header -->
+  <header class="app-header">
+    <div><div class="app-title">Prospect Scout</div><div class="app-subtitle">Photo & Video Client Finder</div></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('finder')">🔍 Pesquisar</button>
+        <button class="nav-tab" onclick="switchTab('pipeline')">📋 Pipeline</button>
+        <button class="nav-tab" onclick="switchTab('routes')">🗺️ Rotas</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="fb-indicator" class="pulse hidden" style="width:8px;height:8px;border-radius:50%;background:var(--success)" title="Firebase ligado"></div>
+        <button class="btn btn-ghost" onclick="toggleDebug()" title="Debug">🖥️</button>
+        <button class="btn btn-ghost" onclick="openSettings()">⚙️</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <!-- FINDER TAB -->
+    <div id="tab-finder">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔍 Pesquisa Abrangente / Broad Area Search</div>
+          <button class="btn btn-secondary btn-sm" onclick="openManualAdd()">➕ Manual</button>
+        </div>
+        <div class="search-controls">
+          <div class="input-group" style="position:relative">
+            <label class="input-label">Localização / Location</label>
+            <input class="input-field" id="location-input" value="Lisboa, Portugal" placeholder="Lisboa, Sintra, Porto..." oninput="onLocationInput(this.value)">
+            <div id="autocomplete-dropdown" class="autocomplete-dropdown hidden"></div>
+          </div>
+          <div class="input-group" style="min-width:150px">
+            <label class="input-label">Raio / Radius: <span id="radius-label">15</span>km</label>
+            <input type="range" id="radius-slider" min="5" max="50" value="15" oninput="document.getElementById('radius-label').textContent=this.value">
+          </div>
+          <div class="input-group" style="min-width:auto;flex:none">
+            <label class="input-label">&nbsp;</label>
+            <button class="btn btn-primary" id="search-btn" onclick="searchAll()">🔍 Pesquisar Tudo</button>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Uma pesquisa encontra todos os negócios relevantes e classifica-os automaticamente.<br><span style="font-size:11px">One search finds all relevant businesses and auto-categorizes them.</span></p>
+        <div id="search-progress" class="hidden">
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+          <div class="search-status" id="search-status"></div>
+        </div>
+        <div id="map-container" class="map-container"><div class="map-placeholder"><span>🗺️</span><p>A carregar mapa...</p></div></div>
+      </div>
+      <div id="results-section" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title" id="results-title">Resultados</div>
+            <button class="btn btn-primary btn-sm" onclick="addAllFiltered()">+ Adicionar Todos</button>
+          </div>
+          <div class="category-summary" id="category-chips"></div>
+          <div class="results-list" id="results-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIPELINE TAB -->
+    <div id="tab-pipeline" class="hidden">
+      <div class="stats-bar" id="pipeline-stats"></div>
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <input class="input-field" id="pipeline-search" style="flex:1;min-width:200px" placeholder="🔎 Pesquisar por nome..." oninput="renderPipeline()">
+        <select class="input-field" id="pipeline-cat-filter" style="min-width:140px" onchange="renderPipeline()"><option value="all">Todas Categorias</option></select>
+        <select class="input-field" id="pipeline-status-filter" style="min-width:140px" onchange="renderPipeline()"><option value="all">Todos Estados</option></select>
+      </div>
+      <div class="card" style="padding:0">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:32px 1.5fr 1fr 1fr .8fr 120px;gap:12px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px">
+          <div>✓</div><div>Nome</div><div>Categoria</div><div>Contacto</div><div>Horário</div><div>Estado</div>
+        </div>
+        <div class="results-list" id="pipeline-list"></div>
+      </div>
+    </div>
+
+    <!-- ROUTES TAB -->
+    <div id="tab-routes" class="hidden">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📍 Selecionar Prospects</div><button class="btn btn-ghost btn-sm" onclick="toggleSelectAll()">Todos</button></div>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Prospects "Novo" com coordenadas.</p>
+            <div class="results-list" id="route-select-list" style="max-height:350px"></div>
+          </div>
+          <div class="card"><div style="display:flex;gap:12px;align-items:flex-end">
+            <div class="input-group" style="flex:1;margin-bottom:0"><label class="input-label">Máx. paragens</label><select class="input-field" id="max-stops"><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div>
+            <button class="btn btn-primary" onclick="generateRoutes()">🗺️ Gerar Rotas</button>
+          </div></div>
+        </div>
+        <div>
+          <div id="route-map" class="map-container" style="height:300px;margin-bottom:16px"></div>
+          <div id="routes-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Debug Console -->
+<div id="debug-console" class="debug-console hidden">
+  <div class="debug-header"><span>🖥️ DEBUG CONSOLE</span><div style="display:flex;gap:8px"><button onclick="debugLogs=[];renderDebug()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px">Clear</button><button onclick="toggleDebug()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px">✕</button></div></div>
+  <div class="debug-body" id="debug-body"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- Modals rendered dynamically -->
+<div id="modal-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// PROSPECT SCOUT — Standalone vanilla JS version
+// ═══════════════════════════════════════════════════════════════
+
+// ─── State ───
+let config = {};
+let prospects = [];
+let searchResults = [];
+let filterCat = 'all';
+let selectedRouteIds = new Set();
+let routes = [];
+let db = null;
+let map = null;
+let markers = [];
+let circle = null;
+let routeMap = null;
+let center = { lat: 38.7223, lng: -9.1393 };
+let debugLogs = [];
+let autocompleteService = null;
+let geocoder = null;
+let autocompleteDebounce = null;
+
+// ─── Constants ───
+const CATEGORIES = [
+  { id:'quinta', label:'Quintas', labelPt:'Quintas', icon:'🏛️', color:'#D4A574' },
+  { id:'event_venue', label:'Event Venues', labelPt:'Espaços de Eventos', icon:'🎪', color:'#7B9E6B' },
+  { id:'wedding', label:'Wedding Venues', labelPt:'Espaços p/ Casamentos', icon:'💒', color:'#C48B9F' },
+  { id:'corporate', label:'Corporate', labelPt:'Empresarial', icon:'🏢', color:'#6B8FA3' },
+  { id:'nightlife', label:'Nightlife', labelPt:'Vida Noturna', icon:'🌙', color:'#8B6BA3' },
+  { id:'real_estate', label:'Real Estate', labelPt:'Imobiliário', icon:'🏠', color:'#A3896B' },
+  { id:'restaurant', label:'Restaurants', labelPt:'Restaurantes', icon:'🍽️', color:'#A36B6B' },
+  { id:'hotel', label:'Hotels', labelPt:'Hotéis', icon:'🏨', color:'#6BA3A3' },
+  { id:'other', label:'Other', labelPt:'Outros', icon:'📍', color:'#888' },
+];
+const STATUS_FLOW = [
+  { id:'new', label:'New', labelPt:'Novo', color:'#6B8FA3', bg:'#1a2a33' },
+  { id:'visited', label:'Visited', labelPt:'Visitado', color:'#7B9E6B', bg:'#1a2d1a' },
+  { id:'follow_up', label:'Follow-up Sent', labelPt:'Follow-up Enviado', color:'#D4A574', bg:'#2d2215' },
+  { id:'won', label:'Client Won', labelPt:'Cliente Ganho', color:'#5BBA6F', bg:'#142d1a' },
+  { id:'lost', label:'Lost', labelPt:'Perdido', color:'#A36B6B', bg:'#2d1515' },
+];
+const CATEGORY_RULES = [
+  { id:'quinta', kw:['quinta','herdade','solar','palacete','manor','estate','monte'], gt:[] },
+  { id:'wedding', kw:['casamento','wedding','noiva','bridal','nupcial'], gt:['wedding_chapel'] },
+  { id:'nightlife', kw:['discoteca','nightclub','club','bar','cocktail','lounge','pub','disco'], gt:['night_club','bar','casino'] },
+  { id:'hotel', kw:['hotel','pousada','hostel','resort','alojamento'], gt:['lodging','hotel','resort_hotel'] },
+  { id:'corporate', kw:['conferência','conference','coworking','co-work','auditório'], gt:['convention_center','meeting_room'] },
+  { id:'real_estate', kw:['imobiliári','real estate','remax','century 21','era ','keller williams'], gt:['real_estate_agency'] },
+  { id:'restaurant', kw:['restaurante','restaurant','bistro','trattoria','taberna','tasca','cervejaria','marisqueira'], gt:['restaurant','meal_delivery','meal_takeaway'] },
+  { id:'event_venue', kw:['evento','event','salão','espaço','pavilhão','centro cultural','galeria','museu','teatro','theatre','arena'], gt:['event_venue','banquet_hall','community_center','performing_arts_theater','cultural_center','art_gallery','museum','stadium'] },
+];
+const BROAD_QUERIES = ['espaço eventos','quinta eventos','hotel','restaurante eventos','salão festas','discoteca bar','imobiliária','centro conferências','venue','casamentos'];
+
+// ─── Utilities ───
+function haversine(lat1,lon1,lat2,lon2){const R=6371,dLat=((lat2-lat1)*Math.PI)/180,dLon=((lon2-lon1)*Math.PI)/180,a=Math.sin(dLat/2)**2+Math.cos((lat1*Math.PI)/180)*Math.cos((lat2*Math.PI)/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
+function getCat(id){return CATEGORIES.find(c=>c.id===id)||CATEGORIES[8]}
+function getStatus(id){return STATUS_FLOW.find(s=>s.id===id)||STATUS_FLOW[0]}
+function formatHours(h){if(!h||!h.length)return'—';const d=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],t=new Date().getDay(),td=h.find(x=>x.day===t);return td?`Hoje: ${td.open} – ${td.close}`:h.map(x=>`${d[x.day]}:${x.open}–${x.close}`).join(' · ')}
+function autoClassify(place){const n=(place.name||'').toLowerCase(),t=place.types||[];let best='other',bs=0;for(const r of CATEGORY_RULES){let s=0;for(const k of r.kw)if(n.includes(k.toLowerCase())){s+=3;break}for(const g of r.gt)if(t.includes(g)){s+=2;break}if(s>bs){bs=s;best=r.id}}return best}
+
+// ─── Debug ───
+function addLog(msg,level='info'){const ts=new Date().toLocaleTimeString('pt-PT',{hour12:false});debugLogs.push({ts,msg,level});if(debugLogs.length>300)debugLogs=debugLogs.slice(-200);renderDebug()}
+function renderDebug(){const el=document.getElementById('debug-body');if(!el)return;el.innerHTML=debugLogs.map(l=>`<div class="debug-line ${l.level}"><span class="ts">[${l.ts}]</span>${l.msg}</div>`).join('');el.scrollTop=el.scrollHeight}
+function toggleDebug(){document.getElementById('debug-console').classList.toggle('hidden')}
+
+// ─── Toast ───
+let toastTimer=null;
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),3000)}
+
+// ─── Tabs ───
+function switchTab(id){['finder','pipeline','routes'].forEach(t=>{document.getElementById('tab-'+t).classList.toggle('hidden',t!==id);document.querySelectorAll('.nav-tab').forEach((btn,i)=>btn.classList.toggle('active',['finder','pipeline','routes'][i]===id))});if(id==='pipeline')renderPipeline();if(id==='routes')renderRouteSelect()}
+
+// ─── Config / Settings ───
+function loadConfig(){try{config=JSON.parse(localStorage.getItem('ps_config')||'{}');addLog('Config loaded from localStorage','ok')}catch(e){config={}}}
+function saveConfigLocal(c){config=c;localStorage.setItem('ps_config',JSON.stringify(c));if(c.readable)document.getElementById('app').classList.add('readable');else document.getElementById('app').classList.remove('readable')}
+
+function openSettings(){
+  const m=document.getElementById('modal-container');
+  m.innerHTML=`<div class="modal-overlay" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">⚙️ Definições / Settings</div>
+    <div class="settings-grid"><div>
+      <div class="input-group"><label class="input-label">Firebase API Key</label><input class="input-field" id="s-fbKey" type="password" value="${config.fbApiKey||''}" placeholder="AIza..."></div>
+      <div class="input-group"><label class="input-label">Firebase Auth Domain</label><input class="input-field" id="s-fbDomain" value="${config.fbAuthDomain||''}" placeholder="app.firebaseapp.com"></div>
+      <div class="input-group"><label class="input-label">Firebase Project ID</label><input class="input-field" id="s-fbProject" value="${config.fbProjectId||''}" placeholder="my-project"></div>
+    </div><div>
+      <div class="input-group"><label class="input-label">Google Maps API Key</label><input class="input-field" id="s-mapsKey" type="password" value="${config.mapsApiKey||''}" placeholder="AIza..."></div>
+      <div class="input-group"><label class="input-label">Firebase App ID</label><input class="input-field" id="s-fbApp" value="${config.fbAppId||''}" placeholder="1:123:web:abc"></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5">As chaves são guardadas no Firebase + browser local.</p>
+    </div></div>
+    <div style="margin-top:20px;padding:16px;background:var(--bg-primary);border-radius:8px;border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div><div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:4px">👁️ Visibilidade Melhorada</div><div style="font-size:12px;color:var(--text-muted)">Texto maior e mais bold.</div></div>
+        <div id="readable-toggle" onclick="this.dataset.on=this.dataset.on==='true'?'false':'true';this.style.background=this.dataset.on==='true'?'var(--accent)':'var(--border)';this.children[0].style.left=this.dataset.on==='true'?'25px':'3px'" data-on="${config.readable?'true':'false'}" style="width:48px;height:26px;border-radius:13px;cursor:pointer;background:${config.readable?'var(--accent)':'var(--border)'};position:relative;transition:background .2s;flex-shrink:0">
+          <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;left:${config.readable?'25':'3'}px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveSettings()">Guardar / Save</button></div>
+  </div></div>`;
+}
+function saveSettings(){
+  const c={fbApiKey:document.getElementById('s-fbKey').value,fbAuthDomain:document.getElementById('s-fbDomain').value,fbProjectId:document.getElementById('s-fbProject').value,fbAppId:document.getElementById('s-fbApp').value,mapsApiKey:document.getElementById('s-mapsKey').value,readable:document.getElementById('readable-toggle').dataset.on==='true'};
+  saveConfigLocal(c);closeModal();initFirebase();initGoogleMaps();
+  if(db){db.collection('app_settings').doc('config').set({...c,savedAt:Date.now()}).then(()=>showToast('✅ Definições guardadas')).catch(e=>showToast('⚠️ Guardado local apenas'))}
+}
+function closeModal(){document.getElementById('modal-container').innerHTML=''}
+
+// ─── Firebase ───
+async function initFirebase(){
+  if(!config.fbApiKey||!config.fbProjectId)return;
+  addLog('Initializing Firebase...','info');
+  try{
+    if(!window.firebase){
+      await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js');
+    }
+    if(!firebase.apps.length)firebase.initializeApp({apiKey:config.fbApiKey,authDomain:config.fbAuthDomain||config.fbProjectId+'.firebaseapp.com',projectId:config.fbProjectId,appId:config.fbAppId||'x'});
+    db=firebase.firestore();
+    document.getElementById('fb-indicator').classList.remove('hidden');
+    addLog('Firebase connected ✓','ok');
+    // Load saved config
+    try{const doc=await db.collection('app_settings').doc('config').get();if(doc.exists){const s=doc.data();config={...config,...s,fbApiKey:config.fbApiKey,fbAuthDomain:config.fbAuthDomain,fbProjectId:config.fbProjectId,fbAppId:config.fbAppId};saveConfigLocal(config);addLog('Config merged from Firebase ✓','ok')}}catch(e){}
+    // Listen to prospects
+    db.collection('prospects').orderBy('addedAt','desc').onSnapshot(snap=>{prospects=snap.docs.map(d=>({id:d.id,...d.data()}));addLog(`Prospects synced: ${prospects.length}`,'ok');renderPipeline();renderRouteSelect()});
+    showToast('🔥 Firebase conectado');
+  }catch(e){addLog('Firebase error: '+e.message,'err');showToast('❌ Firebase: '+e.message)}
+}
+
+function loadScript(src){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
+
+// ─── Google Maps ───
+let gmapsLoaded=false;
+window.__gmapsReady=function(){gmapsLoaded=true;addLog('Google Maps SDK ready ✓ (callback fired)','ok');initMapView()};
+window.gm_authFailure=function(){addLog('❌ GOOGLE MAPS AUTH FAILURE — check API key, billing, enabled APIs','err');showToast('❌ Google Maps: API key inválida ou billing não ativo')};
+
+function initGoogleMaps(){
+  if(gmapsLoaded)return;
+  if(!config.mapsApiKey){addLog('No Maps API key — skipping','warn');return}
+  if(document.querySelector('script[src*="maps.googleapis.com"]'))return;
+  addLog('Loading Google Maps SDK...','info');
+  const s=document.createElement('script');
+  s.src=`https://maps.googleapis.com/maps/api/js?key=${config.mapsApiKey}&libraries=places,geometry&callback=__gmapsReady`;
+  s.async=true;s.defer=true;
+  s.onerror=()=>{addLog('❌ Google Maps script failed to load','err');showToast('❌ Google Maps não carregou')};
+  document.head.appendChild(s);
+}
+
+function initMapView(){
+  if(!window.google||!window.google.maps)return;
+  const el=document.getElementById('map-container');
+  el.innerHTML='';
+  map=new google.maps.Map(el,{center,zoom:11,styles:[{elementType:'geometry',stylers:[{color:'#1a1d23'}]},{elementType:'labels.text.fill',stylers:[{color:'#8B95A5'}]},{elementType:'labels.text.stroke',stylers:[{color:'#0F1318'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2D3748'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#161B22'}]},{featureType:'poi',elementType:'geometry',stylers:[{color:'#1C222B'}]}]});
+  updateCircle();
+  autocompleteService=new google.maps.places.AutocompleteService();
+  geocoder=new google.maps.Geocoder();
+  addLog('Map initialized ✓','ok');
+}
+
+function updateCircle(){
+  if(circle)circle.setMap(null);
+  const r=parseInt(document.getElementById('radius-slider').value)*1000;
+  circle=new google.maps.Circle({map,center,radius:r,fillColor:'#D4A574',fillOpacity:.08,strokeColor:'#D4A574',strokeOpacity:.4,strokeWeight:1});
+}
+
+// ─── Location Autocomplete ───
+function onLocationInput(text){
+  clearTimeout(autocompleteDebounce);
+  if(text.length<3){document.getElementById('autocomplete-dropdown').classList.add('hidden');return}
+  autocompleteDebounce=setTimeout(()=>{
+    if(!autocompleteService){addLog('AutocompleteService not ready','warn');return}
+    autocompleteService.getPlacePredictions({input:text,types:['(regions)']}, (predictions,status)=>{
+      const dd=document.getElementById('autocomplete-dropdown');
+      if(status==='OK'&&predictions&&predictions.length){
+        dd.innerHTML=predictions.map((p,i)=>`<div class="autocomplete-item" onclick="selectLocation(${i})"><div class="autocomplete-name">📍 ${p.structured_formatting?.main_text||p.description}</div><div class="autocomplete-detail">${p.structured_formatting?.secondary_text||''}</div></div>`).join('');
+        dd.classList.remove('hidden');
+        window._acPredictions=predictions;
+      }else{dd.classList.add('hidden')}
+    });
+  },300);
+}
+function selectLocation(i){
+  const p=window._acPredictions[i];
+  document.getElementById('location-input').value=p.description;
+  document.getElementById('autocomplete-dropdown').classList.add('hidden');
+  geocoder.geocode({placeId:p.place_id},(results,status)=>{
+    if(status==='OK'&&results[0]){
+      center={lat:results[0].geometry.location.lat(),lng:results[0].geometry.location.lng()};
+      map.setCenter(center);updateCircle();
+      addLog(`Location set: ${p.description} (${center.lat.toFixed(4)}, ${center.lng.toFixed(4)})`,'ok');
+      showToast('📍 '+p.description);
+    }
+  });
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.input-group'))document.getElementById('autocomplete-dropdown').classList.add('hidden')});
+
+// ─── SEARCH ───
+async function searchAll(){
+  if(!gmapsLoaded){showToast('⚠️ Google Maps não carregou — verifica a API key');return}
+  const radius=parseInt(document.getElementById('radius-slider').value);
+  const btn=document.getElementById('search-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> A pesquisar...';
+  document.getElementById('search-progress').classList.remove('hidden');
+  searchResults=[];
+  addLog('═══ SEARCH STARTED ═══','info');
+  addLog(`Center: ${center.lat.toFixed(4)}, ${center.lng.toFixed(4)} | Radius: ${radius}km`,'info');
+
+  const service=new google.maps.places.PlacesService(map);
+  const earthR=6371,latD=(radius/earthR)*(180/Math.PI),lngD=latD/Math.cos(center.lat*Math.PI/180);
+  const bounds=new google.maps.LatLngBounds(new google.maps.LatLng(center.lat-latD,center.lng-lngD),new google.maps.LatLng(center.lat+latD,center.lng+lngD));
+  const seen=new Set(),raw=[];
+
+  for(let i=0;i<BROAD_QUERIES.length;i++){
+    const q=BROAD_QUERIES[i];
+    setProgress(i+1,BROAD_QUERIES.length,`A pesquisar: "${q}"... (${raw.length} encontrados)`);
+    addLog(`[${i+1}/${BROAD_QUERIES.length}] "${q}"...`,'info');
+    await new Promise(resolve=>{
+      const timeout=setTimeout(()=>{addLog(`  ⏱️ Timeout for "${q}"`,'warn');resolve()},10000);
+      service.textSearch({query:q,bounds},(res,st)=>{
+        clearTimeout(timeout);
+        addLog(`  Status: ${st} | Results: ${res?res.length:0}`,st==='OK'?'ok':'warn');
+        if(st==='OK'&&res){let added=0;res.forEach(p=>{if(seen.has(p.place_id))return;const d=haversine(center.lat,center.lng,p.geometry.location.lat(),p.geometry.location.lng());if(d<=radius){seen.add(p.place_id);raw.push({place_id:p.place_id,name:p.name,address:p.formatted_address,lat:p.geometry.location.lat(),lng:p.geometry.location.lng(),rating:p.rating,distance:d,types:p.types||[]});added++}});addLog(`  → ${added} new (${raw.length} total)`,'ok')}
+        resolve();
+      });
+    });
+    await new Promise(r=>setTimeout(r,300));
+  }
+
+  if(!raw.length){addLog('No results found','warn');showToast('⚠️ Nenhum negócio encontrado. Tenta aumentar o raio.');resetSearchBtn();return}
+
+  // Classify
+  addLog(`Classifying ${raw.length} businesses...`,'info');
+  const classified=raw.map(p=>({...p,category:autoClassify(p)}));
+
+  // Get details
+  addLog(`Fetching details...`,'info');
+  const detailed=[];
+  for(let i=0;i<classified.length;i+=5){
+    const batch=classified.slice(i,i+5);
+    setProgress(Math.min(i+5,classified.length),classified.length,`A obter detalhes: ${Math.min(i+5,classified.length)} de ${classified.length}...`);
+    const res=await Promise.all(batch.map(p=>new Promise(resolve=>{
+      const t=setTimeout(()=>resolve({...p,phone:'',website:'',hours:[]}),8000);
+      service.getDetails({placeId:p.place_id,fields:['formatted_phone_number','website','opening_hours','international_phone_number','url']},(det,st)=>{
+        clearTimeout(t);
+        if(st==='OK'&&det){const hrs=det.opening_hours?.periods?.map(x=>({day:x.open?.day,open:`${String(x.open?.hours||0).padStart(2,'0')}:${String(x.open?.minutes||0).padStart(2,'0')}`,close:x.close?`${String(x.close.hours||0).padStart(2,'0')}:${String(x.close.minutes||0).padStart(2,'0')}`:'24:00'}))||[];resolve({...p,phone:det.international_phone_number||det.formatted_phone_number||'',website:det.website||'',mapsUrl:det.url||'',hours:hrs})}
+        else resolve({...p,phone:'',website:'',hours:[]});
+      });
+    })));
+    detailed.push(...res);
+    await new Promise(r=>setTimeout(r,300));
+  }
+
+  // Place markers
+  markers.forEach(m=>m.setMap(null));markers=[];
+  detailed.forEach(p=>{const c=getCat(p.category);markers.push(new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map,title:p.name,icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:c.color,fillOpacity:.9,strokeWeight:2,strokeColor:'#0F1318'}}))});
+
+  searchResults=detailed.sort((a,b)=>a.distance-b.distance);
+  filterCat='all';
+  addLog(`═══ DONE: ${detailed.length} businesses ═══`,'ok');
+  showToast(`✅ ${detailed.length} negócios encontrados`);
+  renderResults();
+  resetSearchBtn();
+}
+
+function setProgress(curr,total,text){
+  document.getElementById('progress-fill').style.width=(curr/total*100)+'%';
+  document.getElementById('search-status').textContent=text;
+}
+function resetSearchBtn(){const b=document.getElementById('search-btn');b.disabled=false;b.innerHTML='🔍 Pesquisar Tudo';document.getElementById('search-progress').classList.add('hidden')}
+
+// ─── Render Results ───
+function renderResults(){
+  const sec=document.getElementById('results-section');sec.classList.remove('hidden');
+  // Category chips
+  const counts={all:searchResults.length};searchResults.forEach(r=>{counts[r.category]=(counts[r.category]||0)+1});
+  const chips=document.getElementById('category-chips');
+  chips.innerHTML=`<button class="chip ${filterCat==='all'?'active':''}" onclick="filterCat='all';renderResults()">Todos (${counts.all})</button>`+CATEGORIES.filter(c=>counts[c.id]).map(c=>`<button class="chip ${filterCat===c.id?'active':''}" onclick="filterCat='${c.id}';renderResults()" style="${filterCat===c.id?'border-color:'+c.color+';color:'+c.color+';background:'+c.color+'15':''}">${c.icon} ${c.labelPt} (${counts[c.id]})</button>`).join('');
+  const filtered=filterCat==='all'?searchResults:searchResults.filter(r=>r.category===filterCat);
+  const existingIds=new Set(prospects.map(p=>p.place_id));
+  document.getElementById('results-title').textContent=`Resultados (${filtered.length} negócios)`;
+  document.getElementById('results-list').innerHTML=filtered.map(r=>{
+    const c=getCat(r.category),added=existingIds.has(r.place_id);
+    return `<div class="prospect-row" style="grid-template-columns:1fr .7fr .8fr .5fr .5fr 100px;cursor:default">
+      <div><div class="prospect-name">${r.name}</div><div class="prospect-address">${r.address}</div></div>
+      <div><span class="cat-tag" style="background:${c.color}20;color:${c.color}">${c.icon} ${c.labelPt}</span></div>
+      <div class="prospect-contact">${r.phone?'📞 '+r.phone:''}${r.website?'<br><a href="'+r.website+'" target="_blank">🌐 Website</a>':''}</div>
+      <div style="font-size:12px;color:var(--text-muted)">${formatHours(r.hours)}</div>
+      <div style="font-size:12px;color:var(--text-secondary)">${r.distance.toFixed(1)} km</div>
+      <div>${added?'<span class="badge" style="background:var(--accent-glow);color:var(--accent)">✓</span>':'<button class="btn btn-primary btn-sm" onclick="addOne(\''+r.place_id+'\')">+ Add</button>'}</div>
+    </div>`;
+  }).join('');
+}
+function addOne(placeId){const r=searchResults.find(x=>x.place_id===placeId);if(r)addProspect({...r,status:'new',addedAt:Date.now(),source:'api',notes:''})}
+function addAllFiltered(){
+  const existingIds=new Set(prospects.map(p=>p.place_id));
+  const filtered=filterCat==='all'?searchResults:searchResults.filter(r=>r.category===filterCat);
+  const toAdd=filtered.filter(r=>!existingIds.has(r.place_id));
+  if(!toAdd.length){showToast('Todos já adicionados');return}
+  if(db){const batch=db.batch();toAdd.forEach(r=>{batch.set(db.collection('prospects').doc(),{...r,status:'new',addedAt:Date.now(),source:'api',notes:''})});batch.commit().then(()=>showToast(`✅ ${toAdd.length} adicionados`))}
+  else{prospects=[...toAdd.map((r,i)=>({...r,id:'local_'+Date.now()+i,status:'new',addedAt:Date.now(),source:'api',notes:''})),...prospects];showToast(`✅ ${toAdd.length} adicionados`);renderResults()}
+}
+
+// ─── CRUD ───
+async function addProspect(p){if(db)await db.collection('prospects').add(p);else{prospects.unshift({...p,id:'local_'+Date.now()});renderPipeline()}showToast('✅ '+p.name);renderResults()}
+async function updateProspect(id,data){if(db&&!id.startsWith('local_'))await db.collection('prospects').doc(id).update(data);else{const i=prospects.findIndex(p=>p.id===id);if(i>=0)Object.assign(prospects[i],data);renderPipeline()}}
+async function deleteProspect(id){if(db&&!id.startsWith('local_'))await db.collection('prospects').doc(id).delete();else{prospects=prospects.filter(p=>p.id!==id);renderPipeline()}closeModal();showToast('Eliminado')}
+
+// ─── Pipeline ───
+function renderPipeline(){
+  // Stats
+  const stats={total:prospects.length,new:prospects.filter(p=>p.status==='new').length,visited:prospects.filter(p=>p.status==='visited').length,followUp:prospects.filter(p=>p.status==='follow_up').length,won:prospects.filter(p=>p.status==='won').length};
+  document.getElementById('pipeline-stats').innerHTML=`
+    <div class="stat-item"><div class="stat-value">${stats.total}</div><div class="stat-label">Total</div></div>
+    <div class="stat-item"><div class="stat-value" style="color:#6B8FA3">${stats.new}</div><div class="stat-label">Novos</div></div>
+    <div class="stat-item"><div class="stat-value" style="color:#7B9E6B">${stats.visited}</div><div class="stat-label">Visitados</div></div>
+    <div class="stat-item"><div class="stat-value" style="color:#D4A574">${stats.followUp}</div><div class="stat-label">Follow-up</div></div>
+    <div class="stat-item"><div class="stat-value" style="color:#5BBA6F">${stats.won}</div><div class="stat-label">Clientes</div></div>`;
+  // Populate filters once
+  const catF=document.getElementById('pipeline-cat-filter');if(catF.options.length<=1){CATEGORIES.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.icon+' '+c.labelPt;catF.appendChild(o)})}
+  const stF=document.getElementById('pipeline-status-filter');if(stF.options.length<=1){STATUS_FLOW.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.labelPt;stF.appendChild(o)})}
+  // Filter
+  const fc=catF.value,fs=stF.value,ft=document.getElementById('pipeline-search').value.toLowerCase();
+  const filtered=prospects.filter(p=>{if(fc!=='all'&&p.category!==fc)return false;if(fs!=='all'&&p.status!==fs)return false;if(ft&&!p.name.toLowerCase().includes(ft))return false;return true});
+  document.getElementById('pipeline-list').innerHTML=filtered.length?filtered.map(p=>{
+    const c=getCat(p.category),s=getStatus(p.status),checked=['visited','follow_up','won'].includes(p.status);
+    return `<div class="prospect-row" onclick="openDetail('${p.id}')">
+      <div class="checkbox-wrap ${checked?'checked':''}" onclick="event.stopPropagation();advanceStatus('${p.id}','${p.status}')"></div>
+      <div><div class="prospect-name">${p.name}</div><div class="prospect-address">${p.address||''}</div></div>
+      <div><span class="cat-tag" style="background:${c.color}20;color:${c.color}">${c.icon} ${c.labelPt}</span></div>
+      <div class="prospect-contact">${p.phone?'📞 '+p.phone:''}${p.email?'<br>✉️ '+p.email:''}</div>
+      <div style="font-size:12px;color:var(--text-muted)">${formatHours(p.hours)}</div>
+      <div><select class="status-select" style="background:${s.bg};color:${s.color};border-color:${s.color}40" onclick="event.stopPropagation()" onchange="updateProspect('${p.id}',{status:this.value})">${STATUS_FLOW.map(x=>`<option value="${x.id}" ${x.id===p.status?'selected':''}>${x.labelPt}</option>`).join('')}</select></div>
+    </div>`}).join(''):'<div class="empty-state"><span>📋</span><p>Nenhum prospect. Usa "Pesquisar" para encontrar negócios.</p></div>';
+}
+function advanceStatus(id,current){const next=current==='new'?'visited':current==='visited'?'follow_up':current;if(next!==current)updateProspect(id,{status:next})}
+function openDetail(id){
+  const p=prospects.find(x=>x.id===id);if(!p)return;const c=getCat(p.category);
+  document.getElementById('modal-container').innerHTML=`<div class="modal-overlay" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">${c.icon} ${p.name}</div><div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">${p.address||''}</div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="input-group"><label class="input-label">Estado</label><select class="input-field" id="d-status">${STATUS_FLOW.map(s=>`<option value="${s.id}" ${s.id===p.status?'selected':''}>${s.labelPt}</option>`).join('')}</select></div>
+      <div class="input-group"><label class="input-label">Categoria</label><select class="input-field" id="d-cat">${CATEGORIES.map(c=>`<option value="${c.id}" ${c.id===p.category?'selected':''}>${c.icon} ${c.labelPt}</option>`).join('')}</select></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="input-group"><label class="input-label">Telefone</label><input class="input-field" id="d-phone" value="${p.phone||''}"></div>
+      <div class="input-group"><label class="input-label">Email</label><input class="input-field" id="d-email" value="${p.email||''}"></div>
+    </div>
+    <div class="input-group"><label class="input-label">Website</label><input class="input-field" id="d-web" value="${p.website||''}"></div>
+    <div class="input-group"><label class="input-label">Notas</label><textarea class="input-field" id="d-notes" rows="3">${p.notes||''}</textarea></div>
+    ${p.hours?'<div style="font-size:12px;color:var(--text-secondary);margin-top:8px">🕐 '+formatHours(p.hours)+'</div>':''}
+    <div class="modal-actions"><button class="btn btn-danger btn-sm" onclick="deleteProspect('${p.id}')">Eliminar</button><div style="flex:1"></div><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveDetail('${p.id}')">Guardar</button></div>
+  </div></div>`;
+}
+function saveDetail(id){updateProspect(id,{status:document.getElementById('d-status').value,category:document.getElementById('d-cat').value,phone:document.getElementById('d-phone').value,email:document.getElementById('d-email').value,website:document.getElementById('d-web').value,notes:document.getElementById('d-notes').value});closeModal();showToast('✅ Guardado')}
+
+// ─── Manual Add ───
+function openManualAdd(){
+  document.getElementById('modal-container').innerHTML=`<div class="modal-overlay" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">➕ Adicionar Prospect</div>
+    <div class="input-group"><label class="input-label">Nome *</label><input class="input-field" id="m-name" placeholder="Quinta da Serra"></div>
+    <div class="input-group"><label class="input-label">Morada</label><input class="input-field" id="m-addr" placeholder="Rua..."></div>
+    <div class="grid-2"><div class="input-group"><label class="input-label">Latitude</label><input class="input-field" id="m-lat" placeholder="38.7223"></div><div class="input-group"><label class="input-label">Longitude</label><input class="input-field" id="m-lng" placeholder="-9.1393"></div></div>
+    <div class="input-group"><label class="input-label">Categoria</label><select class="input-field" id="m-cat">${CATEGORIES.map(c=>`<option value="${c.id}">${c.icon} ${c.labelPt}</option>`).join('')}</select></div>
+    <div class="grid-2"><div class="input-group"><label class="input-label">Telefone</label><input class="input-field" id="m-phone"></div><div class="input-group"><label class="input-label">Email</label><input class="input-field" id="m-email"></div></div>
+    <div class="input-group"><label class="input-label">Website</label><input class="input-field" id="m-web"></div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveManual()">Adicionar</button></div>
+  </div></div>`;
+}
+function saveManual(){const n=document.getElementById('m-name').value;if(!n.trim())return;addProspect({name:n,address:document.getElementById('m-addr').value,lat:parseFloat(document.getElementById('m-lat').value)||0,lng:parseFloat(document.getElementById('m-lng').value)||0,category:document.getElementById('m-cat').value,phone:document.getElementById('m-phone').value,email:document.getElementById('m-email').value,website:document.getElementById('m-web').value,notes:'',status:'new',addedAt:Date.now(),source:'manual'});closeModal()}
+
+// ─── Routes ───
+function renderRouteSelect(){
+  const list=document.getElementById('route-select-list');
+  const visitable=prospects.filter(p=>p.status==='new'&&p.lat&&p.lng);
+  list.innerHTML=visitable.length?visitable.map(p=>{const c=getCat(p.category);return `<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer" onclick="toggleRouteSelect('${p.id}')"><div class="checkbox-wrap ${selectedRouteIds.has(p.id)?'checked':''}"></div><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.icon} ${p.name}</div><div style="font-size:11px;color:var(--text-muted)">${p.address||''}</div></div></div>`}).join(''):'<div class="empty-state" style="padding:24px"><span>📍</span><p>Sem prospects novos.</p></div>';
+}
+function toggleRouteSelect(id){if(selectedRouteIds.has(id))selectedRouteIds.delete(id);else selectedRouteIds.add(id);renderRouteSelect()}
+function toggleSelectAll(){const vis=prospects.filter(p=>p.status==='new'&&p.lat&&p.lng);if(selectedRouteIds.size===vis.length)selectedRouteIds.clear();else vis.forEach(p=>selectedRouteIds.add(p.id));renderRouteSelect()}
+
+function generateRoutes(){
+  const vis=prospects.filter(p=>selectedRouteIds.has(p.id)&&p.lat&&p.lng);
+  if(!vis.length){showToast('⚠️ Seleciona prospects');return}
+  const max=parseInt(document.getElementById('max-stops').value);
+  const rem=[...vis];routes=[];
+  while(rem.length){const rt=[rem.shift()];while(rt.length<max&&rem.length){const last=rt[rt.length-1];let ni=0,nd=Infinity;rem.forEach((p,i)=>{const d=haversine(last.lat,last.lng,p.lat,p.lng);if(d<nd){nd=d;ni=i}});if(nd>20)break;rt.push(rem.splice(ni,1)[0])}const td=rt.reduce((s,p,i)=>i===0?0:s+haversine(rt[i-1].lat,rt[i-1].lng,p.lat,p.lng),0);routes.push({stops:rt,dist:td})}
+  showToast(`🗺️ ${routes.length} rota(s)`);
+  renderRoutes();
+}
+function renderRoutes(){
+  document.getElementById('routes-list').innerHTML=routes.map((r,ri)=>`<div class="route-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div><div style="font-weight:700;font-size:14px;color:var(--accent)">Rota ${ri+1}</div><div style="font-size:11px;color:var(--text-muted)">${r.stops.length} paragens · ~${r.dist.toFixed(1)} km</div></div><button class="btn btn-secondary btn-sm" onclick="showRoute(${ri})">Ver no Mapa</button></div>
+    ${r.stops.map((s,si)=>{const c=getCat(s.category);return `<div class="route-stop"><div class="stop-number">${si+1}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.icon} ${s.name}</div><div style="font-size:11px;color:var(--text-muted)">${s.address||''}</div></div>${s.phone?`<div style="font-size:11px;color:var(--text-secondary)">📞 ${s.phone}</div>`:''}</div>`}).join('')}
+  </div>`).join('');
+}
+function showRoute(ri){
+  const r=routes[ri];if(!r||!window.google)return;
+  const el=document.getElementById('route-map');el.innerHTML='';
+  routeMap=new google.maps.Map(el,{center:{lat:r.stops[0].lat,lng:r.stops[0].lng},zoom:12,styles:[{elementType:'geometry',stylers:[{color:'#1a1d23'}]},{elementType:'labels.text.fill',stylers:[{color:'#8B95A5'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2D3748'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#161B22'}]}]});
+  const bounds=new google.maps.LatLngBounds();
+  r.stops.forEach((s,i)=>{bounds.extend({lat:s.lat,lng:s.lng});new google.maps.Marker({position:{lat:s.lat,lng:s.lng},map:routeMap,label:{text:String(i+1),color:'#0F1318',fontWeight:'700'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:14,fillColor:'#D4A574',fillOpacity:1,strokeWeight:2,strokeColor:'#0F1318'}})});
+  routeMap.fitBounds(bounds);
+  if(r.stops.length>1)new google.maps.DirectionsService().route({origin:{lat:r.stops[0].lat,lng:r.stops[0].lng},destination:{lat:r.stops[r.stops.length-1].lat,lng:r.stops[r.stops.length-1].lng},waypoints:r.stops.slice(1,-1).map(s=>({location:{lat:s.lat,lng:s.lng},stopover:true})),travelMode:'DRIVING',optimizeWaypoints:true},(result,status)=>{if(status==='OK')new google.maps.DirectionsRenderer({directions:result,map:routeMap,suppressMarkers:true,polylineOptions:{strokeColor:'#D4A574',strokeWeight:3,strokeOpacity:.7}})});
+}
+
+// ─── Init ───
+loadConfig();
+if(config.readable)document.getElementById('app').classList.add('readable');
+initFirebase();
+initGoogleMaps();
+addLog('Prospect Scout initialized','ok');
+</script>
+</body>
+</html>
