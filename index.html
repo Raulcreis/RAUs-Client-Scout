@@ -155,8 +155,8 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
 .day-chip{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-family:'DM Sans',sans-serif;transition:all .2s}
 .day-chip.active{background:var(--accent);border-color:var(--accent);color:var(--bg-primary)}
 .day-chip.closed{background:rgba(224,85,85,.15);border-color:rgba(224,85,85,.3);color:var(--danger)}
-/* Pipeline map */
-.pipeline-map-container{width:100%;height:500px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
+/* Prospects map */
+.prospects-map-container{width:100%;height:500px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
 .map-legend{display:flex;gap:16px;flex-wrap:wrap;padding:10px 16px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;font-size:12px}
 .legend-item{display:flex;align-items:center;gap:6px}
 .legend-dot{width:10px;height:10px;border-radius:50%}
@@ -195,8 +195,8 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
     <div style="display:flex;align-items:center;gap:12px">
       <div class="nav-tabs">
         <button class="nav-tab active" onclick="switchTab('finder')">🔍 Search</button>
-        <button class="nav-tab" id="prospects-tab-btn" onclick="switchTab('pipeline')">📋 Prospects</button>
-        <button class="nav-tab" onclick="switchTab('routes')">🗺️ Plan</button>
+        <button class="nav-tab" id="prospects-tab-btn" onclick="switchTab('prospects')">📋 Prospects</button>
+        <button class="nav-tab" onclick="switchTab('plan')">🗺️ Plan</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <div id="fb-indicator" class="pulse hidden" style="width:8px;height:8px;border-radius:50%;background:var(--success)" title="Firebase ligado"></div>
@@ -252,18 +252,18 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
     </div>
 
     <!-- PIPELINE TAB -->
-    <div id="tab-pipeline" class="hidden">
+    <div id="tab-prospects" class="hidden">
       <!-- Follow-up reminders -->
       <div id="overdue-section"></div>
-      <div class="stats-bar" id="pipeline-stats"></div>
-      <!-- Pipeline Map Toggle -->
+      <div class="stats-bar" id="prospects-stats"></div>
+      <!-- Prospects Map Toggle -->
       <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-        <input class="input-field" id="pipeline-search" style="flex:1;min-width:200px" placeholder="🔎 Search by name..." oninput="renderPipeline()">
-        <select class="input-field" id="pipeline-cat-filter" style="min-width:140px" onchange="renderPipeline()"><option value="all">All Categories</option></select>
-        <select class="input-field" id="pipeline-status-filter" style="min-width:140px" onchange="renderPipeline()"><option value="all">All Statuses</option></select>
-        <button class="btn btn-secondary btn-sm" onclick="togglePipelineMap()">🗺️ Map View</button>
+        <input class="input-field" id="prospects-search" style="flex:1;min-width:200px" placeholder="🔎 Search by name..." oninput="renderProspects()">
+        <select class="input-field" id="prospects-cat-filter" style="min-width:140px" onchange="renderProspects()"><option value="all">All Categories</option></select>
+        <select class="input-field" id="prospects-status-filter" style="min-width:140px" onchange="renderProspects()"><option value="all">All Statuses</option></select>
+        <button class="btn btn-secondary btn-sm" onclick="toggleProspectsMap()">🗺️ Map View</button>
       </div>
-      <div id="pipeline-map-section" class="hidden">
+      <div id="prospects-map-section" class="hidden">
         <div class="map-legend">
           <div class="legend-item"><div class="legend-dot" style="background:#6B8FA3"></div> New</div>
           <div class="legend-item"><div class="legend-dot" style="background:#7B9E6B"></div> Visited</div>
@@ -271,34 +271,34 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
           <div class="legend-item"><div class="legend-dot" style="background:#5BBA6F"></div> Won</div>
           <div class="legend-item"><div class="legend-dot" style="background:#A36B6B"></div> Lost</div>
         </div>
-        <div id="pipeline-map" class="pipeline-map-container"></div>
+        <div id="prospects-map" class="prospects-map-container"></div>
       </div>
       <div class="card" style="padding:0">
         <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:32px 1.5fr 1fr 1fr .8fr 120px;gap:12px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px">
           <div>✓</div><div>Name</div><div>Category</div><div>Contact</div><div>Hours</div><div>Status</div>
         </div>
-        <div class="results-list" id="pipeline-list"></div>
+        <div class="results-list" id="prospects-list"></div>
       </div>
     </div>
 
     <!-- ROUTES TAB -->
-    <div id="tab-routes" class="hidden">
+    <div id="tab-plan" class="hidden">
       <div class="grid-2">
         <div>
           <div class="card">
             <div class="card-header"><div class="card-title">📍 Smart Visit Planner</div><button class="btn btn-ghost btn-sm" onclick="toggleSelectAll()">All</button></div>
-            <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Select the day you plan to visit. Closed venues will be flagged and excluded from routes.</p>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Select the day you plan to visit. Closed venues will be flagged and excluded from plan.</p>
             <div class="day-chips" id="day-chips"></div>
             <div class="results-list" id="route-select-list" style="max-height:350px"></div>
           </div>
           <div class="card"><div style="display:flex;gap:12px;align-items:flex-end">
             <div class="input-group" style="flex:1;margin-bottom:0"><label class="input-label">Max stops per route</label><select class="input-field" id="max-stops"><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div>
-            <button class="btn btn-primary" onclick="generateRoutes()">🗺️ Generate Routes</button>
+            <button class="btn btn-primary" onclick="generatePlan()">🗺️ Generate Plan</button>
           </div></div>
         </div>
         <div>
           <div id="route-map" class="map-container" style="height:300px;margin-bottom:16px"></div>
-          <div id="routes-list"></div>
+          <div id="plan-list"></div>
         </div>
       </div>
     </div>
@@ -327,7 +327,7 @@ let prospects = [];
 let searchResults = [];
 let filterCat = 'all';
 let selectedRouteIds = new Set();
-let routes = [];
+let plan = [];
 let db = null;
 let map = null;
 let markers = [];
@@ -338,9 +338,9 @@ let debugLogs = [];
 let autocompleteService = null;
 let geocoder = null;
 let autocompleteDebounce = null;
-let pipelineMap = null;
-let pipelineMarkers = [];
-let visitDay = new Date().getDay(); // default to today
+let prospectsMap = null;
+let prospectsMarkers = [];
+let visitDay = new Date().getDay(); // Google format: 0=Sun, 1=Mon, etc.
 
 // ─── Constants ───
 const CATEGORIES = [
@@ -391,7 +391,7 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),3000)}
 
 // ─── Tabs ───
-function switchTab(id){['finder','pipeline','routes'].forEach(t=>{document.getElementById('tab-'+t).classList.toggle('hidden',t!==id);document.querySelectorAll('.nav-tab').forEach((btn,i)=>btn.classList.toggle('active',['finder','pipeline','routes'][i]===id))});if(id==='pipeline')renderPipeline();if(id==='routes')renderRouteSelect()}
+function switchTab(id){['finder','prospects','plan'].forEach(t=>{document.getElementById('tab-'+t).classList.toggle('hidden',t!==id);document.querySelectorAll('.nav-tab').forEach((btn,i)=>btn.classList.toggle('active',['finder','prospects','plan'][i]===id))});if(id==='prospects')renderProspects();if(id==='plan')renderRouteSelect()}
 
 // ─── Config / Settings ───
 function loadConfig(){try{config=JSON.parse(localStorage.getItem('ps_config')||'{}');addLog('Config loaded from localStorage','ok')}catch(e){config={}}}
@@ -444,7 +444,14 @@ async function initFirebase(){
     // Load saved config
     try{const doc=await db.collection('app_settings').doc('config').get();if(doc.exists){const s=doc.data();config={...config,...s,fbApiKey:config.fbApiKey,fbAuthDomain:config.fbAuthDomain,fbProjectId:config.fbProjectId,fbAppId:config.fbAppId};saveConfigLocal(config);addLog('Config merged from Firebase ✓','ok')}}catch(e){}
     // Listen to prospects
-    db.collection('prospects').orderBy('addedAt','desc').onSnapshot(snap=>{prospects=snap.docs.map(d=>({id:d.id,...d.data()}));addLog(`Prospects synced: ${prospects.length}`,'ok');updateProspectsCount();renderPipeline();renderRouteSelect()});
+    db.collection('prospects').orderBy('addedAt','desc').onSnapshot(snap=>{
+      prospects=snap.docs.map(d=>({id:d.id,...d.data()}));
+      addLog(`Prospects synced from Firebase: ${prospects.length}`,'ok');
+      updateProspectsCount();renderProspects();renderRouteSelect();
+    }, err=>{
+      addLog(`❌ onSnapshot error: ${err.message}`,'err');
+      addLog('Prospects will work locally only','warn');
+    });
     showToast('🔥 Firebase connected');
   }catch(e){addLog('Firebase error: '+e.message,'err');showToast('❌ Firebase: '+e.message)}
 }
@@ -481,8 +488,11 @@ function initMapView(){
 
 function updateCircle(){
   if(circle)circle.setMap(null);
+  if(window._centerPin)window._centerPin.setMap(null);
+  if(!map)return;
   const r=parseInt(document.getElementById('radius-slider').value)*1000;
   circle=new google.maps.Circle({map,center,radius:r,fillColor:'#D4A574',fillOpacity:.08,strokeColor:'#D4A574',strokeOpacity:.4,strokeWeight:1});
+  window._centerPin=new google.maps.Marker({position:center,map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:10,fillColor:'#D4A574',fillOpacity:1,strokeWeight:3,strokeColor:'#0F1318'},title:'Search center',zIndex:999});
 }
 
 // ─── Location Autocomplete ───
@@ -628,19 +638,29 @@ function loadSearchFromHistory(id){
   if(!entry){showToast('Search not found');return}
   searchResults=entry.results;
   filterCat='all';
-  // Set location input and center
   document.getElementById('location-input').value=entry.location;
   document.getElementById('radius-slider').value=entry.radius;
   document.getElementById('radius-label').textContent=entry.radius;
-  // Place markers if map is ready
+  // Geocode the location to set center properly
   if(map&&window.google){
+    // Try to get center from first result average, or geocode
+    if(searchResults.length){
+      const avgLat=searchResults.reduce((s,r)=>s+r.lat,0)/searchResults.length;
+      const avgLng=searchResults.reduce((s,r)=>s+r.lng,0)/searchResults.length;
+      center={lat:avgLat,lng:avgLng};
+    }
+    map.setCenter(center);
+    map.setZoom(11);
+    updateCircle();
+    // Place all business markers
     markers.forEach(m=>m.setMap(null));markers=[];
     searchResults.forEach(p=>{const c=getCat(p.category);markers.push(new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map,title:p.name,icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:c.color,fillOpacity:.9,strokeWeight:2,strokeColor:'#0F1318'}}))});
   }
   closeModal();
   renderResults();
   showToast(`📂 Loaded: ${entry.location} (${entry.resultCount} results)`);
-  addLog(`Loaded search from history: "${entry.location}" — ${entry.resultCount} results, 0 API calls`,'ok');
+  addLog(`Loaded from history: "${entry.location}" — ${entry.resultCount} results, 0 API calls`,'ok');
+}
 }
 function openPreviousSearches(){
   const history=getSearchHistory();
@@ -721,7 +741,7 @@ function changeSearchCat(pid,cat){const r=searchResults.find(x=>x.place_id===pid
 
 function addOne(placeId,btnEl){
   const r=searchResults.find(x=>x.place_id===placeId);if(!r)return;
-  if(checkDuplicate(r)){showToast('⚠️ Already in pipeline');if(btnEl){btnEl.textContent='Exists';btnEl.style.opacity='.5'}return}
+  if(checkDuplicate(r)){showToast('⚠️ Already in prospects');if(btnEl){btnEl.textContent='Exists';btnEl.style.opacity='.5'}return}
   addingInProgress=true;
   if(btnEl){btnEl.classList.add('btn-added');btnEl.textContent='Added ✓';const row=btnEl.closest('.prospect-row');if(row)setTimeout(()=>row.classList.add('row-added'),300)}
   doAddProspect({...r,status:'new',addedAt:Date.now(),source:'api',notes:'',interactionLog:[],tags:[]}).then(()=>showToast('✅ Added: '+r.name));
@@ -737,28 +757,25 @@ async function addAllFiltered(){
   document.querySelectorAll('#results-list .prospect-row').forEach(row=>{const btn=row.querySelector('.btn-primary');if(btn){btn.classList.add('btn-added');btn.textContent='Added ✓';setTimeout(()=>row.classList.add('row-added'),300)}});
   const btn=document.getElementById('add-all-btn');btn.classList.add('btn-added');btn.textContent=`Added ${toAdd.length} ✓`;
   const addedIds=new Set(toAdd.map(r=>r.place_id));
+  // ALWAYS add to local array immediately
+  const localItems=toAdd.map((r,i)=>{
+    const data=sanitizeForFirestore({...r,status:'new',addedAt:Date.now(),source:'api',notes:'',interactionLog:[],tags:[]});
+    data.id='local_'+Date.now()+'_'+i+'_'+Math.random().toString(36).slice(2,6);
+    return data;
+  });
+  prospects=[...localItems,...prospects];
+  renderProspects();
+  updateProspectsCount();
+  addLog(`✓ ${toAdd.length} prospects added locally`,'ok');
+  showToast(`✅ ${toAdd.length} added to prospects`);
+  // Sync to Firebase in background
   if(db){
     try{
       const batch=db.batch();
-      toAdd.forEach(r=>{
-        const data=sanitizeForFirestore({...r,status:'new',addedAt:Date.now(),source:'api',notes:'',interactionLog:[],tags:[]});
-        batch.set(db.collection('prospects').doc(),data);
-      });
+      localItems.forEach(data=>{batch.set(db.collection('prospects').doc(),data)});
       await batch.commit();
-      addLog(`✓ Batch saved ${toAdd.length} prospects to Firebase`,'ok');
-      showToast(`✅ ${toAdd.length} added to prospects`);
-      updateProspectsCount();
-    }catch(e){
-      addLog(`❌ Batch save failed: ${e.message}`,'err');
-      showToast('❌ Batch save failed: '+e.message);
-      // Fallback local
-      prospects=[...toAdd.map((r,i)=>({...sanitizeForFirestore(r),id:'local_'+Date.now()+i,status:'new',addedAt:Date.now(),source:'api',notes:'',interactionLog:[],tags:[]})),...prospects];
-      updateProspectsCount();renderPipeline();
-    }
-  } else {
-    prospects=[...toAdd.map((r,i)=>({...sanitizeForFirestore(r),id:'local_'+Date.now()+i,status:'new',addedAt:Date.now(),source:'api',notes:'',interactionLog:[],tags:[]})),...prospects];
-    showToast(`✅ ${toAdd.length} added`);
-    updateProspectsCount();renderPipeline();
+      addLog(`✓ Batch synced ${toAdd.length} to Firebase`,'ok');
+    }catch(e){addLog(`Firebase batch sync failed (kept locally): ${e.message}`,'warn')}
   }
   setTimeout(()=>{searchResults=searchResults.filter(r=>!addedIds.has(r.place_id));addingInProgress=false;renderResults()},1500);
 }
@@ -779,27 +796,21 @@ function sanitizeForFirestore(obj){
 
 async function doAddProspect(p){
   const data=sanitizeForFirestore(p);
-  addLog(`Adding to prospects: "${data.name}"`,'info');
-  try{
-    if(db){
+  // ALWAYS add to local array immediately so UI updates instantly
+  const localId='local_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+  data.id=localId;
+  prospects.unshift(data);
+  renderProspects();
+  updateProspectsCount();
+  addLog(`Added to prospects: "${data.name}" (local: ${localId})`,'ok');
+  // Then sync to Firebase in background
+  if(db){
+    try{
       const ref=await db.collection('prospects').add(data);
-      addLog(`✓ Saved to Firebase: ${ref.id}`,'ok');
-    } else {
-      data.id='local_'+Date.now();
-      prospects.unshift(data);
-      addLog(`✓ Saved locally: ${data.id}`,'ok');
-      renderPipeline();
+      addLog(`Synced to Firebase: ${ref.id}`,'ok');
+    }catch(e){
+      addLog(`Firebase sync failed (kept locally): ${e.message}`,'warn');
     }
-    updateProspectsCount();
-  }catch(e){
-    addLog(`❌ SAVE FAILED: ${e.message}`,'err');
-    showToast('❌ Save failed: '+e.message);
-    // Fallback: save locally
-    data.id='local_'+Date.now();
-    prospects.unshift(data);
-    renderPipeline();
-    updateProspectsCount();
-    addLog('Saved locally as fallback','warn');
   }
 }
 async function addProspect(p){
@@ -811,38 +822,62 @@ function updateProspectsCount(){
   const btn=document.getElementById('prospects-tab-btn');
   if(btn) btn.textContent=`📋 Prospects (${prospects.length})`;
 }
-async function updateProspect(id,data){if(db&&!id.startsWith('local_'))await db.collection('prospects').doc(id).update(data);else{const i=prospects.findIndex(p=>p.id===id);if(i>=0)Object.assign(prospects[i],data);renderPipeline()}}
-async function deleteProspect(id){if(db&&!id.startsWith('local_'))await db.collection('prospects').doc(id).delete();else{prospects=prospects.filter(p=>p.id!==id);renderPipeline()}closeModal();showToast('Deleted')}
+async function updateProspect(id,data){if(db&&!id.startsWith('local_'))await db.collection('prospects').doc(id).update(data);else{const i=prospects.findIndex(p=>p.id===id);if(i>=0)Object.assign(prospects[i],data);renderProspects()}}
+async function deleteProspect(id){if(db&&!id.startsWith('local_'))await db.collection('prospects').doc(id).delete();else{prospects=prospects.filter(p=>p.id!==id);renderProspects()}closeModal();showToast('Deleted')}
 
-// ─── Pipeline ───
-function renderPipeline(){
+// ─── Prospects ───
+function renderProspects(){
   renderOverdueReminders();
   // Stats
   const stats={total:prospects.length,new:prospects.filter(p=>p.status==='new').length,visited:prospects.filter(p=>p.status==='visited').length,followUp:prospects.filter(p=>p.status==='follow_up').length,won:prospects.filter(p=>p.status==='won').length};
-  document.getElementById('pipeline-stats').innerHTML=`
+  document.getElementById('prospects-stats').innerHTML=`
     <div class="stat-item"><div class="stat-value">${stats.total}</div><div class="stat-label">Total</div></div>
     <div class="stat-item"><div class="stat-value" style="color:#6B8FA3">${stats.new}</div><div class="stat-label">New</div></div>
     <div class="stat-item"><div class="stat-value" style="color:#7B9E6B">${stats.visited}</div><div class="stat-label">Visited</div></div>
     <div class="stat-item"><div class="stat-value" style="color:#D4A574">${stats.followUp}</div><div class="stat-label">Follow-up</div></div>
     <div class="stat-item"><div class="stat-value" style="color:#5BBA6F">${stats.won}</div><div class="stat-label">Clients</div></div>`;
   // Populate filters once
-  const catF=document.getElementById('pipeline-cat-filter');if(catF.options.length<=1){CATEGORIES.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.icon+' '+c.label;catF.appendChild(o)})}
-  const stF=document.getElementById('pipeline-status-filter');if(stF.options.length<=1){STATUS_FLOW.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.label;stF.appendChild(o)})}
+  const catF=document.getElementById('prospects-cat-filter');if(catF.options.length<=1){CATEGORIES.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.icon+' '+c.label;catF.appendChild(o)})}
+  const stF=document.getElementById('prospects-status-filter');if(stF.options.length<=1){STATUS_FLOW.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.label;stF.appendChild(o)})}
   // Filter
-  const fc=catF.value,fs=stF.value,ft=document.getElementById('pipeline-search').value.toLowerCase();
+  const fc=catF.value,fs=stF.value,ft=document.getElementById('prospects-search').value.toLowerCase();
   const filtered=prospects.filter(p=>{if(fc!=='all'&&p.category!==fc)return false;if(fs!=='all'&&p.status!==fs)return false;if(ft&&!p.name.toLowerCase().includes(ft))return false;return true});
-  document.getElementById('pipeline-list').innerHTML=filtered.length?filtered.map(p=>{
+  document.getElementById('prospects-list').innerHTML=filtered.length?filtered.map((p,pidx)=>{
     const c=getCat(p.category),s=getStatus(p.status),checked=['visited','follow_up','won'].includes(p.status);
+    const mapsLink=p.mapsUrl||`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+    const phId='ph_'+pidx;
+    const tagsHtml=(p.tags&&p.tags.length)?p.tags.map(t=>`<span class="tag" style="background:${t.color}25;color:${t.color};border:1px solid ${t.color}40">${t.label}</span>`).join(''):'';
     return `<div class="prospect-row" onclick="openDetail('${p.id}')">
       <div class="checkbox-wrap ${checked?'checked':''}" onclick="event.stopPropagation();advanceStatus('${p.id}','${p.status}')"></div>
-      <div><div class="prospect-name">${p.name}</div><div class="prospect-address">${p.address||''}</div>${(p.tags&&p.tags.length)?'<div class="tags-wrap" style="margin-top:3px">'+p.tags.map(t=>`<span class="tag" style="background:${t.color}25;color:${t.color};border:1px solid ${t.color}40">${t.label}</span>`).join('')+'</div>':''}</div>
+      <div>
+        <div class="prospect-name">${p.name}</div>
+        <div class="prospect-address">${p.address||''}</div>
+        <div class="tags-wrap" style="margin-top:3px">${tagsHtml}<span class="tag-add-btn" onclick="event.stopPropagation();quickTag('${p.id}')">+ tag</span></div>
+      </div>
       <div><span class="cat-tag" style="background:${c.color}20;color:${c.color}">${c.icon} ${c.label}</span></div>
-      <div class="prospect-contact">${p.phone?'📞 '+p.phone:''}${p.email?'<br>✉️ '+p.email:''}</div>
-      <div style="font-size:12px;color:var(--text-muted)">${formatHours(p.hours)}</div>
+      <div class="prospect-contact" onclick="event.stopPropagation()">
+        ${p.phone?'<div>📞 '+p.phone+'</div>':''}
+        ${p.website?'<div><a href="'+p.website+'" target="_blank">🌐 Website</a></div>':''}
+        <div><a href="${mapsLink}" target="_blank">📍 Maps</a></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted)" onclick="event.stopPropagation()">
+        ${formatHours(p.hours)}
+        ${p.hours&&p.hours.length?'<div class="addr-toggle" onclick="document.getElementById(\''+phId+'\').classList.toggle(\'hidden\')">Full week ▾</div><div id="'+phId+'" class="hidden weekly-hours">'+formatWeeklyHours(p.hours)+'</div>':''}
+      </div>
       <div><select class="status-select" style="background:${s.bg};color:${s.color};border-color:${s.color}40" onclick="event.stopPropagation()" onchange="updateProspect('${p.id}',{status:this.value})">${STATUS_FLOW.map(x=>`<option value="${x.id}" ${x.id===p.status?'selected':''}>${x.label}</option>`).join('')}</select></div>
     </div>`}).join(''):'<div class="empty-state"><span>📋</span><p>No prospects yet. Use the Search tab to find businesses.</p></div>';
 }
 function advanceStatus(id,current){const next=current==='new'?'visited':current==='visited'?'follow_up':current;if(next!==current)updateProspect(id,{status:next})}
+function quickTag(id){
+  const label=prompt('Tag name:');if(!label||!label.trim())return;
+  const colors=['#D4A574','#7B9E6B','#6B8FA3','#C48B9F','#8B6BA3','#A36B6B','#6BA3A3','#5BBA6F','#E05555'];
+  const color=colors[Math.floor(Math.random()*colors.length)];
+  const p=prospects.find(x=>x.id===id);if(!p)return;
+  const tags=p.tags||[];
+  tags.push({label:label.trim(),color});
+  updateProspect(id,{tags});
+  showToast('🏷️ Tag added: '+label.trim());
+}
 function openDetail(id){
   const p=prospects.find(x=>x.id===id);if(!p)return;const c=getCat(p.category);
   const mapsLink=p.mapsUrl||`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
@@ -939,22 +974,31 @@ function openManualAdd(){
 }
 function saveManual(){const n=document.getElementById('m-name').value;if(!n.trim())return;addProspect({name:n,address:document.getElementById('m-addr').value,lat:parseFloat(document.getElementById('m-lat').value)||0,lng:parseFloat(document.getElementById('m-lng').value)||0,category:document.getElementById('m-cat').value,phone:document.getElementById('m-phone').value,email:document.getElementById('m-email').value,website:document.getElementById('m-web').value,notes:'',status:'new',addedAt:Date.now(),source:'manual'});closeModal()}
 
-// ─── Routes with Smart Scheduling ───
-const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+// ─── Plan with Smart Scheduling ───
+const DAYS_DISPLAY=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAYS_GOOGLE=[1,2,3,4,5,6,0];
+const DAYS_FULL=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 function isOpenOnDay(prospect, dayNum){
-  if(!prospect.hours||!prospect.hours.length) return true; // assume open if no data
-  return prospect.hours.some(h=>h.day===dayNum);
+  if(!prospect.hours||!prospect.hours.length) return true;
+  if(prospect.hours.some(h=>h.day===dayNum)) return true;
+  // 24h places sometimes have a single period: day=0 open=00:00
+  if(prospect.hours.length===1&&prospect.hours[0].open==='00:00'&&(!prospect.hours[0].close||prospect.hours[0].close==='24:00'||prospect.hours[0].close==='00:00')) return true;
+  return false;
 }
 function getOpeningTime(prospect, dayNum){
   if(!prospect.hours||!prospect.hours.length) return '09:00';
   const h=prospect.hours.find(x=>x.day===dayNum);
-  return h?h.open:'09:00';
+  if(h){if(h.open==='00:00'&&(!h.close||h.close==='24:00'||h.close==='00:00')) return 'Open 24h'; return h.open}
+  if(prospect.hours.length===1&&prospect.hours[0].open==='00:00') return 'Open 24h';
+  return '09:00';
 }
 
 function renderDayChips(){
-  const el=document.getElementById('day-chips');
-  el.innerHTML=DAYS.map((d,i)=>`<button class="day-chip ${i===visitDay?'active':''}" onclick="visitDay=${i};renderDayChips();renderRouteSelect()">${d}</button>`).join('');
+  document.getElementById('day-chips').innerHTML=DAYS_DISPLAY.map((d,i)=>{
+    const gDay=DAYS_GOOGLE[i];
+    return `<button class="day-chip ${gDay===visitDay?'active':''}" onclick="visitDay=${gDay};renderDayChips();renderRouteSelect()">${d}</button>`;
+  }).join('');
 }
 
 function renderRouteSelect(){
@@ -962,15 +1006,17 @@ function renderRouteSelect(){
   const list=document.getElementById('route-select-list');
   const visitable=prospects.filter(p=>p.status==='new'&&p.lat&&p.lng);
   if(!visitable.length){list.innerHTML='<div class="empty-state" style="padding:24px"><span>📍</span><p>No new prospects available.</p></div>';return}
-  list.innerHTML=visitable.map(p=>{
-    const c=getCat(p.category);
-    const open=isOpenOnDay(p,visitDay);
-    const openTime=open?getOpeningTime(p,visitDay):'';
-    return `<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;${!open?'opacity:.5':''}}" onclick="${open?`toggleRouteSelect('${p.id}')`:''}">
+  const sorted=[...visitable].sort((a,b)=>{
+    const ao=isOpenOnDay(a,visitDay),bo=isOpenOnDay(b,visitDay);
+    if(ao&&!bo) return -1; if(!ao&&bo) return 1; return 0;
+  });
+  list.innerHTML=sorted.map(p=>{
+    const c=getCat(p.category),open=isOpenOnDay(p,visitDay),ot=open?getOpeningTime(p,visitDay):'';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;${!open?'opacity:.35':''}" onclick="${open?`toggleRouteSelect('${p.id}')`:`showToast('Closed on ${DAYS_FULL[visitDay]}')`}">
       <div class="checkbox-wrap ${selectedRouteIds.has(p.id)?'checked':''}" style="${!open?'border-color:var(--danger)':''}"></div>
       <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${c.icon} ${p.name} ${!open?'<span style="color:var(--danger);font-size:11px">CLOSED on '+DAYS[visitDay]+'</span>':''}</div>
-        <div style="font-size:11px;color:var(--text-muted)">${p.address||''} ${open&&openTime?'· Opens '+openTime:''}</div>
+        <div style="font-size:13px;font-weight:600">${c.icon} ${p.name} ${!open?'<span style="color:var(--danger);font-size:11px">CLOSED</span>':''}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${p.address||''} ${open&&ot?'· '+ot:''}</div>
       </div>
     </div>`;
   }).join('');
@@ -983,14 +1029,14 @@ function toggleSelectAll(){
   renderRouteSelect();
 }
 
-function generateRoutes(){
+function generatePlan(){
   // Filter to selected AND open on visit day
   const vis=prospects.filter(p=>selectedRouteIds.has(p.id)&&p.lat&&p.lng&&isOpenOnDay(p,visitDay));
   if(!vis.length){showToast('⚠️ Select prospects first');return}
   // Sort by opening time so early-openers come first
   vis.sort((a,b)=>getOpeningTime(a,visitDay).localeCompare(getOpeningTime(b,visitDay)));
   const max=parseInt(document.getElementById('max-stops').value);
-  const rem=[...vis];routes=[];
+  const rem=[...vis];plan=[];
   while(rem.length){
     const rt=[rem.shift()];
     while(rt.length<max&&rem.length){
@@ -1002,19 +1048,19 @@ function generateRoutes(){
     // Re-sort route stops by opening time
     rt.sort((a,b)=>getOpeningTime(a,visitDay).localeCompare(getOpeningTime(b,visitDay)));
     const td=rt.reduce((s,p,i)=>i===0?0:s+haversine(rt[i-1].lat,rt[i-1].lng,p.lat,p.lng),0);
-    routes.push({stops:rt,dist:td});
+    plan.push({stops:rt,dist:td});
   }
-  showToast(`🗺️ ${routes.length} route(s) generated for ${DAYS[visitDay]}`);
-  renderRoutes();
+  showToast(`🗺️ ${plan.length} route(s) generated for ${DAYS_FULL[visitDay]}`);
+  renderPlan();
 }
-function renderRoutes(){
-  document.getElementById('routes-list').innerHTML=routes.map((r,ri)=>`<div class="route-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div><div style="font-weight:700;font-size:14px;color:var(--accent)">Route ${ri+1} — ${DAYS[visitDay]}</div><div style="font-size:11px;color:var(--text-muted)">${r.stops.length} stops · ~${r.dist.toFixed(1)} km</div></div><button class="btn btn-secondary btn-sm" onclick="showRoute(${ri})">Show on Map</button></div>
+function renderPlan(){
+  document.getElementById('plan-list').innerHTML=plan.map((r,ri)=>`<div class="route-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div><div style="font-weight:700;font-size:14px;color:var(--accent)">Route ${ri+1} — ${DAYS_FULL[visitDay]}</div><div style="font-size:11px;color:var(--text-muted)">${r.stops.length} stops · ~${r.dist.toFixed(1)} km</div></div><button class="btn btn-secondary btn-sm" onclick="showRoute(${ri})">Show on Map</button></div>
     ${r.stops.map((s,si)=>{const c=getCat(s.category);const ot=getOpeningTime(s,visitDay);return `<div class="route-stop"><div class="stop-number">${si+1}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.icon} ${s.name}</div><div style="font-size:11px;color:var(--text-muted)">${s.address||''}</div></div><div style="font-size:11px;color:var(--text-secondary);text-align:right">🕐 ${ot}${s.phone?'<br>📞 '+s.phone:''}</div></div>`}).join('')}
   </div>`).join('');
 }
 function showRoute(ri){
-  const r=routes[ri];if(!r||!window.google)return;
+  const r=plan[ri];if(!r||!window.google)return;
   const el=document.getElementById('route-map');el.innerHTML='';
   routeMap=new google.maps.Map(el,{center:{lat:r.stops[0].lat,lng:r.stops[0].lng},zoom:12,styles:[{elementType:'geometry',stylers:[{color:'#1a1d23'}]},{elementType:'labels.text.fill',stylers:[{color:'#8B95A5'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2D3748'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#161B22'}]}]});
   const bounds=new google.maps.LatLngBounds();
@@ -1023,29 +1069,29 @@ function showRoute(ri){
   if(r.stops.length>1)new google.maps.DirectionsService().route({origin:{lat:r.stops[0].lat,lng:r.stops[0].lng},destination:{lat:r.stops[r.stops.length-1].lat,lng:r.stops[r.stops.length-1].lng},waypoints:r.stops.slice(1,-1).map(s=>({location:{lat:s.lat,lng:s.lng},stopover:true})),travelMode:'DRIVING',optimizeWaypoints:true},(result,status)=>{if(status==='OK')new google.maps.DirectionsRenderer({directions:result,map:routeMap,suppressMarkers:true,polylineOptions:{strokeColor:'#D4A574',strokeWeight:3,strokeOpacity:.7}})});
 }
 
-// ─── Pipeline Map ───
-function togglePipelineMap(){
-  const sec=document.getElementById('pipeline-map-section');
+// ─── Prospects Map ───
+function toggleProspectsMap(){
+  const sec=document.getElementById('prospects-map-section');
   sec.classList.toggle('hidden');
-  if(!sec.classList.contains('hidden')) renderPipelineMap();
+  if(!sec.classList.contains('hidden')) renderProspectsMap();
 }
-function renderPipelineMap(){
+function renderProspectsMap(){
   if(!window.google||!window.google.maps)return;
-  const el=document.getElementById('pipeline-map');
+  const el=document.getElementById('prospects-map');
   const STATUS_COLORS={new:'#6B8FA3',visited:'#7B9E6B',follow_up:'#D4A574',won:'#5BBA6F',lost:'#A36B6B'};
   const withCoords=prospects.filter(p=>p.lat&&p.lng);
   if(!withCoords.length)return;
-  pipelineMap=new google.maps.Map(el,{center:{lat:withCoords[0].lat,lng:withCoords[0].lng},zoom:10,styles:[{elementType:'geometry',stylers:[{color:'#1a1d23'}]},{elementType:'labels.text.fill',stylers:[{color:'#8B95A5'}]},{elementType:'labels.text.stroke',stylers:[{color:'#0F1318'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2D3748'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#161B22'}]}]});
-  pipelineMarkers.forEach(m=>m.setMap(null));pipelineMarkers=[];
+  prospectsMap=new google.maps.Map(el,{center:{lat:withCoords[0].lat,lng:withCoords[0].lng},zoom:10,styles:[{elementType:'geometry',stylers:[{color:'#1a1d23'}]},{elementType:'labels.text.fill',stylers:[{color:'#8B95A5'}]},{elementType:'labels.text.stroke',stylers:[{color:'#0F1318'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2D3748'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#161B22'}]}]});
+  prospectsMarkers.forEach(m=>m.setMap(null));prospectsMarkers=[];
   const bounds=new google.maps.LatLngBounds();
   withCoords.forEach(p=>{
     const color=STATUS_COLORS[p.status]||'#888';
     bounds.extend({lat:p.lat,lng:p.lng});
-    const m=new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map:pipelineMap,title:p.name+' ('+p.status+')',icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:color,fillOpacity:.9,strokeWeight:2,strokeColor:'#0F1318'}});
+    const m=new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map:prospectsMap,title:p.name+' ('+p.status+')',icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:color,fillOpacity:.9,strokeWeight:2,strokeColor:'#0F1318'}});
     m.addListener('click',()=>openDetail(p.id));
-    pipelineMarkers.push(m);
+    prospectsMarkers.push(m);
   });
-  pipelineMap.fitBounds(bounds);
+  prospectsMap.fitBounds(bounds);
 }
 
 // ─── Follow-up Reminders ───
