@@ -184,10 +184,11 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
 /* Blue links */
 .prospect-contact a{color:#5B9BD5;text-decoration:none}
 .prospect-contact a:hover{text-decoration:underline;color:#7BB8E8}
-/* Priority slider */
-.priority-wrap{display:flex;align-items:center;gap:6px;font-size:12px}
-.priority-slider{-webkit-appearance:none;width:60px;height:4px;background:var(--border);border-radius:2px;outline:none}
-.priority-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--accent);border-radius:50%;cursor:pointer}
+/* Priority slider - emoji as thumb */
+.priority-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+.priority-slider{-webkit-appearance:none;width:60px;height:6px;background:linear-gradient(to right,#5B9BD5,#7B9E6B,#E05555);border-radius:3px;outline:none;cursor:pointer}
+.priority-slider::-webkit-slider-thumb{-webkit-appearance:none;width:8px;height:8px;background:transparent;cursor:pointer}
+.priority-emoji{font-size:20px;line-height:1;cursor:default}
 /* Sortable headers */
 .sort-header{cursor:pointer;user-select:none;display:flex;align-items:center;gap:3px}
 .sort-header:hover{color:var(--accent)}
@@ -201,11 +202,27 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
 /* Inline category dropdown */
 .cat-tag-select{background:transparent;border:none;color:inherit;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;outline:none;padding:0;appearance:none;-webkit-appearance:none}
 .results-header{display:grid;grid-template-columns:1.4fr .65fr .9fr .65fr .45fr 90px;gap:12px;padding:10px 16px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);background:var(--bg-secondary);border-radius:var(--radius) var(--radius) 0 0}
-@keyframes addedPop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+/* Plan drag handle */
+.drag-handle{cursor:grab;color:var(--text-muted);font-size:14px;padding:0 4px;user-select:none}
+.drag-handle:active{cursor:grabbing}
+.dragging{opacity:.5;background:var(--bg-hover)}
+/* Even stats bar */
+.stats-bar-even{display:flex;padding:14px 20px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px}
+.stats-bar-even .stat-item{flex:1;display:flex;align-items:center;justify-content:center;gap:8px}
+.stats-bar-even .stat-value{font-family:'Sora',sans-serif;font-size:22px;font-weight:700}
+.stats-bar-even .stat-emoji{font-size:18px}
+/* Light mode */
+.light-mode{--bg-primary:#F5F6F8;--bg-secondary:#FFFFFF;--bg-card:#FFFFFF;--bg-hover:#F0F1F3;--border:#E2E4E8;--text-primary:#1A1D23;--text-secondary:#5A6577;--text-muted:#8B95A5;--shadow:0 2px 12px rgba(0,0,0,.08)}
+.light-mode .app-header{box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.light-mode .nav-bar{box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.light-mode .input-field{background:#F5F6F8}
+.light-mode .debug-console{background:#f8f8fa;border-top-color:var(--accent)}
+.light-mode .debug-body{color:#333}
+.light-mode .debug-header{background:#f0f0f2}
 @media(max-width:900px){
   .prospect-row{grid-template-columns:28px 1fr 1fr;font-size:12px}
   .grid-2,.settings-grid{grid-template-columns:1fr}
-  .stats-bar{gap:16px}
+  .stats-bar,.stats-bar-even{flex-wrap:wrap;gap:16px}
   .search-controls{flex-direction:column}
 }
 </style>
@@ -225,8 +242,8 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
   <!-- Big Navigation -->
   <nav class="nav-bar">
     <button class="nav-big-btn active" id="nav-finder" onclick="switchTab('finder')">🔍 Search</button>
-    <button class="nav-big-btn" id="nav-prospects" onclick="switchTab('prospects')">📋 Prospects <span class="nav-count" id="prospects-count">0</span></button>
-    <button class="nav-big-btn" id="nav-plan" onclick="switchTab('plan')">🗺️ Plan</button>
+    <button class="nav-big-btn" id="nav-prospects" onclick="switchTab('prospects')">👤 Prospects <span class="nav-count" id="prospects-count">0</span></button>
+    <button class="nav-big-btn" id="nav-plan" onclick="switchTab('plan')">🗺️ Planning</button>
   </nav>
 
   <div class="main-content">
@@ -311,32 +328,31 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
 
     <!-- PLAN TAB -->
     <div id="tab-plan" class="hidden">
-      <div class="grid-2">
-        <div>
-          <div class="card">
-            <div class="card-header"><div class="card-title">📍 Smart Visit Planner</div><button class="btn btn-ghost btn-sm" onclick="toggleSelectAll()">All</button></div>
-            <div class="input-group" style="margin-bottom:8px">
-              <label class="input-label">Starting Location</label>
-              <input class="input-field" id="plan-start-location" placeholder="Your address or starting point..." value="" onchange="startLatLng=null;geocodeStartLocation(()=>doRenderRouteSelect())">
-            </div>
-            <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Select day. Closed venues are flagged red at the bottom.</p>
-            <div class="day-chips" id="day-chips"></div>
-            <div style="display:flex;gap:8px;margin-bottom:8px">
-              <button class="btn btn-ghost btn-sm" onclick="sortPlanBy('distance')">↕ Distance</button>
-              <button class="btn btn-ghost btn-sm" onclick="sortPlanBy('priority')">↕ Priority</button>
-            </div>
-            <div class="results-list" id="route-select-list" style="max-height:400px"></div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">📍 Smart Visit Planner</div><button class="btn btn-ghost btn-sm" onclick="toggleSelectAll()">Select All</button></div>
+        <div class="grid-2" style="margin-bottom:12px">
+          <div class="input-group" style="margin-bottom:0">
+            <label class="input-label">Starting Location</label>
+            <input class="input-field" id="plan-start-location" placeholder="Your address or starting point..." value="" onchange="startLatLng=null;geocodeStartLocation(()=>doRenderRouteSelect())">
           </div>
-          <div class="card"><div style="display:flex;gap:12px;align-items:flex-end">
-            <div class="input-group" style="flex:1;margin-bottom:0"><label class="input-label">Max stops per route</label><select class="input-field" id="max-stops"><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div>
-            <button class="btn btn-primary" onclick="generatePlan()">🗺️ Generate Plan</button>
-          </div></div>
+          <div class="input-group" style="margin-bottom:0">
+            <label class="input-label">Day of Visit</label>
+            <div class="day-chips" id="day-chips" style="margin-bottom:0"></div>
+          </div>
         </div>
-        <div>
-          <div id="route-map" class="map-container" style="height:300px;margin-bottom:16px"></div>
-          <div id="plan-list"></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button class="btn btn-ghost btn-sm" onclick="sortPlanBy('distance')">↕ Distance</button>
+          <button class="btn btn-ghost btn-sm" onclick="sortPlanBy('priority')">↕ Priority</button>
+          <p style="font-size:11px;color:var(--text-muted);margin-left:auto;align-self:center">Drag ⠿ to reorder. Selected items move to top.</p>
         </div>
+        <div class="results-list" id="route-select-list" style="max-height:500px"></div>
       </div>
+      <div class="card"><div style="display:flex;gap:12px;align-items:flex-end">
+        <div class="input-group" style="flex:1;margin-bottom:0"><label class="input-label">Max stops per route</label><select class="input-field" id="max-stops"><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div>
+        <button class="btn btn-primary" onclick="generatePlan()">🗺️ Generate Plan</button>
+      </div></div>
+      <div id="route-map" class="map-container" style="margin-bottom:16px"></div>
+      <div id="plan-list"></div>
     </div>
   </div>
   <div style="text-align:center;padding:16px;font-size:11px;color:var(--text-muted);border-top:1px solid var(--border);margin-top:20px">Tool by RAU</div>
@@ -455,7 +471,7 @@ let prospectsCatFilter='all';
 
 // ─── Config / Settings ───
 function loadConfig(){try{config=JSON.parse(localStorage.getItem('ps_config')||'{}');addLog('Config loaded from localStorage','ok')}catch(e){config={}}}
-function saveConfigLocal(c){config=c;localStorage.setItem('ps_config',JSON.stringify(c));if(c.readable)document.getElementById('app').classList.add('readable');else document.getElementById('app').classList.remove('readable')}
+function saveConfigLocal(c){config=c;localStorage.setItem('ps_config',JSON.stringify(c));if(c.readable)document.getElementById('app').classList.add('readable');else document.getElementById('app').classList.remove('readable');if(c.lightMode)document.getElementById('app').classList.add('light-mode');else document.getElementById('app').classList.remove('light-mode')}
 
 function openSettings(){
   const m=document.getElementById('modal-container');
@@ -471,10 +487,16 @@ function openSettings(){
       <p style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5">Keys are saved to Firebase + local browser.</p>
     </div></div>
     <div style="margin-top:20px;padding:16px;background:var(--bg-primary);border-radius:8px;border:1px solid var(--border)">
-      <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div><div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:4px">👁️ Enhanced Readability</div><div style="font-size:12px;color:var(--text-muted)">Larger, bolder text across the app.</div></div>
         <div id="readable-toggle" onclick="this.dataset.on=this.dataset.on==='true'?'false':'true';this.style.background=this.dataset.on==='true'?'var(--accent)':'var(--border)';this.children[0].style.left=this.dataset.on==='true'?'25px':'3px'" data-on="${config.readable?'true':'false'}" style="width:48px;height:26px;border-radius:13px;cursor:pointer;background:${config.readable?'var(--accent)':'var(--border)'};position:relative;transition:background .2s;flex-shrink:0">
           <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;left:${config.readable?'25':'3'}px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div><div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:4px">☀️ Light Mode</div><div style="font-size:12px;color:var(--text-muted)">Switch between dark and light theme.</div></div>
+        <div id="lightmode-toggle" onclick="this.dataset.on=this.dataset.on==='true'?'false':'true';this.style.background=this.dataset.on==='true'?'var(--accent)':'var(--border)';this.children[0].style.left=this.dataset.on==='true'?'25px':'3px'" data-on="${config.lightMode?'true':'false'}" style="width:48px;height:26px;border-radius:13px;cursor:pointer;background:${config.lightMode?'var(--accent)':'var(--border)'};position:relative;transition:background .2s;flex-shrink:0">
+          <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;left:${config.lightMode?'25':'3'}px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
         </div>
       </div>
     </div>
@@ -482,7 +504,7 @@ function openSettings(){
   </div></div>`;
 }
 function saveSettings(){
-  const c={fbApiKey:document.getElementById('s-fbKey').value,fbAuthDomain:document.getElementById('s-fbDomain').value,fbProjectId:document.getElementById('s-fbProject').value,fbAppId:document.getElementById('s-fbApp').value,mapsApiKey:document.getElementById('s-mapsKey').value,readable:document.getElementById('readable-toggle').dataset.on==='true'};
+  const c={fbApiKey:document.getElementById('s-fbKey').value,fbAuthDomain:document.getElementById('s-fbDomain').value,fbProjectId:document.getElementById('s-fbProject').value,fbAppId:document.getElementById('s-fbApp').value,mapsApiKey:document.getElementById('s-mapsKey').value,readable:document.getElementById('readable-toggle').dataset.on==='true',lightMode:document.getElementById('lightmode-toggle').dataset.on==='true'};
   saveConfigLocal(c);closeModal();initFirebase();initGoogleMaps();
   if(db){db.collection('app_settings').doc('config').set({...c,savedAt:Date.now()}).then(()=>showToast('✅ Settings saved')).catch(e=>showToast('⚠️ Saved locally only'))}
 }
@@ -889,13 +911,14 @@ function renderProspects(){
   renderOverdueReminders();
   const ft=prospects.filter(p=>p.status==='fell_through').length;
   const stats={total:prospects.length,new:prospects.filter(p=>p.status==='new').length,visited:prospects.filter(p=>p.status==='visited').length,followUp:prospects.filter(p=>p.status==='follow_up').length,won:prospects.filter(p=>p.status==='won').length,fell:ft};
+  document.getElementById('prospects-stats').className='stats-bar-even';
   document.getElementById('prospects-stats').innerHTML=`
-    <div class="stat-item"><div class="stat-value">${stats.total}</div><div class="stat-label">Total</div></div>
-    <div class="stat-item"><div class="stat-value" style="color:#6B8FA3">${stats.new}</div><div class="stat-label">🌱 New</div></div>
-    <div class="stat-item"><div class="stat-value" style="color:#7B9E6B">${stats.visited}</div><div class="stat-label">🏠 Visited</div></div>
-    <div class="stat-item"><div class="stat-value" style="color:#D4A574">${stats.followUp}</div><div class="stat-label">✉️ Follow-up</div></div>
-    <div class="stat-item"><div class="stat-value" style="color:#5BBA6F">${stats.won}</div><div class="stat-label">🤝 Won</div></div>
-    <div class="stat-item"><div class="stat-value" style="color:#A36B6B">${stats.fell}</div><div class="stat-label">👎 Fell</div></div>`;
+    <div class="stat-item"><div class="stat-value">${stats.total}</div></div>
+    <div class="stat-item"><span class="stat-emoji">🌱</span><div class="stat-value" style="color:#6B8FA3">${stats.new}</div></div>
+    <div class="stat-item"><span class="stat-emoji">🏠</span><div class="stat-value" style="color:#7B9E6B">${stats.visited}</div></div>
+    <div class="stat-item"><span class="stat-emoji">✉️</span><div class="stat-value" style="color:#D4A574">${stats.followUp}</div></div>
+    <div class="stat-item"><span class="stat-emoji">🤝</span><div class="stat-value" style="color:#5BBA6F">${stats.won}</div></div>
+    <div class="stat-item"><span class="stat-emoji">👎</span><div class="stat-value" style="color:#A36B6B">${stats.fell}</div></div>`;
   // Category chips
   const catCounts={all:prospects.length};prospects.forEach(p=>{catCounts[p.category]=(catCounts[p.category]||0)+1});
   document.getElementById('prospects-cat-chips').innerHTML=`<button class="chip ${prospectsCatFilter==='all'?'active':''}" onclick="prospectsCatFilter='all';renderProspects()">All (${catCounts.all})</button>`+CATEGORIES.filter(c=>catCounts[c.id]).map(c=>`<button class="chip ${prospectsCatFilter===c.id?'active':''}" onclick="prospectsCatFilter='${c.id}';renderProspects()" style="${prospectsCatFilter===c.id?'border-color:'+c.color+';color:'+c.color+';background:'+c.color+'15':''}">${c.icon} ${c.label} (${catCounts[c.id]})</button>`).join('');
@@ -947,8 +970,7 @@ function renderProspects(){
         ${p.hours&&p.hours.length?'<div class="addr-toggle" onclick="document.getElementById(\''+phId+'\').classList.toggle(\'hidden\')">Full week ▾</div><div id="'+phId+'" class="hidden weekly-hours">'+formatWeeklyHours(p.hours)+'</div>':''}
       </div>
       <div onclick="event.stopPropagation()" style="text-align:center">
-        <div class="priority-wrap"><input type="range" min="0" max="2" value="${prioVal}" class="priority-slider" onchange="updateProspect('${p.id}',{priority:['low','neutral','high'][this.value]})"></div>
-        <div style="font-size:11px">${getPriorityEmoji(p)}</div>
+        <div class="priority-wrap"><div class="priority-emoji">${getPriorityEmoji(p)}</div><input type="range" min="0" max="2" value="${prioVal}" class="priority-slider" onchange="updateProspect('${p.id}',{priority:['low','neutral','high'][this.value]})"></div>
       </div>
       <div><select class="status-select" style="background:${s.bg};color:${s.color};border-color:${s.color}40" onclick="event.stopPropagation()" onchange="updateProspect('${p.id}',{status:this.value})">${STATUS_FLOW.map(x=>`<option value="${x.id}" ${x.id===p.status?'selected':''}>${x.label}</option>`).join('')}</select></div>
     </div>`}).join(''):'<div class="empty-state"><span>📋</span><p>No prospects yet. Use the Search tab to find businesses.</p></div>';
@@ -956,8 +978,8 @@ function renderProspects(){
 function advanceStatus(id,current){
   const order=['new','visited','follow_up','fell_through','won'];
   const idx=order.indexOf(current);
-  const next=idx<2?order[idx+1]:current;
-  if(next!==current)updateProspect(id,{status:next});
+  const next=idx>=order.length-1?order[0]:order[idx+1];
+  updateProspect(id,{status:next});
 }
 function quickTag(id){
   const label=prompt('Tag name:');if(!label||!label.trim())return;
@@ -1126,45 +1148,48 @@ function renderRouteSelect(){
 function doRenderRouteSelect(){
   const list=document.getElementById('route-select-list');
   const all=prospects.filter(p=>p.lat&&p.lng&&p.status!=='won'&&p.status!=='fell_through');
-  if(!all.length){list.innerHTML='<div class="empty-state" style="padding:24px"><span>📍</span><p>No prospects available.</p></div>';return}
+  if(!all.length){list.innerHTML='<div class="empty-state" style="padding:24px"><span>📍</span><p>No prospects available.</p></div>';initPlanMap([]);return}
 
-  // Calculate distances from start
   all.forEach(p=>{
     p._dist=startLatLng?haversine(startLatLng.lat,startLatLng.lng,p.lat,p.lng):0;
     p._open=isOpenOnDay(p,visitDay);
     p._visited=p.status==='visited'||p.status==='follow_up';
+    p._selected=selectedRouteIds.has(p.id);
   });
 
-  // Sort: visited to bottom, closed to bottom, then by chosen sort
   let sorted=[...all].sort((a,b)=>{
-    // Visited always at bottom
+    // Selected first
+    if(a._selected&&!b._selected) return -1;
+    if(!a._selected&&b._selected) return 1;
+    // Then visited to bottom
     if(a._visited&&!b._visited) return 1;
     if(!a._visited&&b._visited) return -1;
     // Closed below open
     if(a._open&&!b._open) return -1;
     if(!a._open&&b._open) return 1;
     // Then by sort field
-    if(planSortField==='distance'){
-      return planSortDir==='asc'?a._dist-b._dist:b._dist-a._dist;
-    }
-    if(planSortField==='priority'){
-      const av=getPriorityValue(a),bv=getPriorityValue(b);
-      return planSortDir==='asc'?bv-av:av-bv; // high first by default
-    }
+    if(planSortField==='distance') return planSortDir==='asc'?a._dist-b._dist:b._dist-a._dist;
+    if(planSortField==='priority'){const av=getPriorityValue(a),bv=getPriorityValue(b);return planSortDir==='asc'?bv-av:av-bv}
     return 0;
   });
 
-  list.innerHTML=sorted.map(p=>{
+  // Store sorted order for drag reorder
+  window._planOrder=sorted.map(p=>p.id);
+
+  list.innerHTML=sorted.map((p,idx)=>{
     const c=getCat(p.category);
-    const open=p._open;
-    const visited=p._visited;
+    const open=p._open,visited=p._visited,selected=p._selected;
     const ot=open?getOpeningTime(p,visitDay):'';
     const distStr=startLatLng?p._dist.toFixed(1)+' km':'';
     const prioEmoji=getPriorityEmoji(p);
-    const itemClass=visited?'plan-item visited-item':(!open?'plan-item closed-item':'plan-item');
+    const cls=visited?'plan-item visited-item':(!open?'plan-item closed-item':(selected?'plan-item':'plan-item'));
+    const selStyle=selected?'border-left:3px solid var(--accent);':'';
 
-    return `<div class="${itemClass}" onclick="${open&&!visited?`toggleRouteSelect('${p.id}')`:`showToast('${visited?'Already visited':('Closed on '+DAYS_FULL[visitDay])}')`}">
-      <div class="checkbox-wrap ${selectedRouteIds.has(p.id)?'checked':''}" style="${!open?'border-color:var(--danger)':''}"></div>
+    return `<div class="${cls}" style="${selStyle}" draggable="true" data-idx="${idx}" data-id="${p.id}"
+      ondragstart="onPlanDragStart(event)" ondragover="onPlanDragOver(event)" ondrop="onPlanDrop(event)" ondragend="onPlanDragEnd(event)"
+      onclick="${!visited?`toggleRouteSelect('${p.id}')`:`showToast('Already visited')`}">
+      <div class="drag-handle" onclick="event.stopPropagation()">⠿</div>
+      <div class="checkbox-wrap ${selected?'checked':''}" style="${!open?'border-color:var(--danger)':''}"></div>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600" class="${visited?'plan-item-name':''}">
           ${c.icon} ${p.name}
@@ -1173,12 +1198,139 @@ function doRenderRouteSelect(){
         </div>
         <div style="font-size:11px;color:var(--text-muted)">${p.address||''} ${open&&ot?'· '+ot:''}</div>
       </div>
-      <div style="font-size:14px;min-width:24px;text-align:center" title="${p.priority||'neutral'} priority">${prioEmoji}</div>
+      <div style="font-size:18px;min-width:24px;text-align:center">${prioEmoji}</div>
       ${distStr?'<div class="plan-distance">'+distStr+'</div>':''}
     </div>`;
   }).join('');
+
+  // Render plan map with all prospect dots
+  initPlanMap(all);
 }
-function toggleRouteSelect(id){if(selectedRouteIds.has(id))selectedRouteIds.delete(id);else selectedRouteIds.add(id);renderRouteSelect()}
+
+// ─── Plan Map with clickable markers ───
+let planMapMarkers=[];
+function initPlanMap(prospects_list){
+  if(!window.google||!window.google.maps) return;
+  const el=document.getElementById('route-map');
+  if(!el) return;
+  const mapStyles=[{elementType:'geometry',stylers:[{color:'#1a1d23'}]},{elementType:'labels.text.fill',stylers:[{color:'#8B95A5'}]},{elementType:'labels.text.stroke',stylers:[{color:'#0F1318'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2D3748'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#161B22'}]},{featureType:'poi',elementType:'geometry',stylers:[{color:'#1C222B'}]}];
+
+  if(!routeMap){
+    const c=startLatLng||center;
+    routeMap=new google.maps.Map(el,{center:c,zoom:11,styles:mapStyles});
+  }
+
+  // Clear old markers
+  planMapMarkers.forEach(m=>m.setMap(null));
+  planMapMarkers=[];
+
+  if(!prospects_list.length) return;
+
+  const bounds=new google.maps.LatLngBounds();
+  if(startLatLng) bounds.extend(startLatLng);
+
+  prospects_list.forEach(p=>{
+    const selected=selectedRouteIds.has(p.id);
+    const open=isOpenOnDay(p,visitDay);
+    const cat=getCat(p.category);
+    const fillColor=selected?'#D4A574':(!open?'#E05555':cat.color);
+    const scale=selected?10:6;
+    const opacity=selected?1:0.6;
+
+    bounds.extend({lat:p.lat,lng:p.lng});
+    const m=new google.maps.Marker({
+      position:{lat:p.lat,lng:p.lng},
+      map:routeMap,
+      title:p.name+(selected?' [SELECTED]':''),
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:scale,fillColor:fillColor,fillOpacity:opacity,strokeWeight:selected?3:1,strokeColor:selected?'#fff':'#0F1318'}
+    });
+    m.addListener('click',()=>{
+      if(!p._visited) toggleRouteSelect(p.id);
+    });
+    planMapMarkers.push(m);
+  });
+
+  // Add start location marker
+  if(startLatLng){
+    planMapMarkers.push(new google.maps.Marker({
+      position:startLatLng,map:routeMap,title:'Starting Location',
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:12,fillColor:'#5BBA6F',fillOpacity:1,strokeWeight:3,strokeColor:'#0F1318'},zIndex:999
+    }));
+  }
+
+  routeMap.fitBounds(bounds);
+}
+
+// ─── Drag reorder ───
+let dragIdx=null;
+function onPlanDragStart(e){dragIdx=parseInt(e.currentTarget.dataset.idx);e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move'}
+function onPlanDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move'}
+function onPlanDrop(e){
+  e.preventDefault();
+  const targetIdx=parseInt(e.currentTarget.dataset.idx);
+  if(dragIdx===null||dragIdx===targetIdx) return;
+  // Reorder the plan order
+  const order=window._planOrder||[];
+  const [moved]=order.splice(dragIdx,1);
+  order.splice(targetIdx,0,moved);
+  window._planOrder=order;
+  // Re-render with new order (skip default sort)
+  doRenderRouteSelectOrdered();
+}
+function onPlanDragEnd(e){e.currentTarget.classList.remove('dragging');dragIdx=null}
+
+function doRenderRouteSelectOrdered(){
+  // Render in the manually dragged order
+  const order=window._planOrder||[];
+  if(!order.length) return doRenderRouteSelect();
+  const list=document.getElementById('route-select-list');
+  const all=prospects.filter(p=>p.lat&&p.lng&&p.status!=='won'&&p.status!=='fell_through');
+  const map_=new Map(all.map(p=>[p.id,p]));
+  const sorted=order.map(id=>map_.get(id)).filter(Boolean);
+  // Add any new ones not in order
+  all.forEach(p=>{if(!order.includes(p.id))sorted.push(p)});
+
+  sorted.forEach(p=>{
+    p._dist=startLatLng?haversine(startLatLng.lat,startLatLng.lng,p.lat,p.lng):0;
+    p._open=isOpenOnDay(p,visitDay);
+    p._visited=p.status==='visited'||p.status==='follow_up';
+    p._selected=selectedRouteIds.has(p.id);
+  });
+
+  window._planOrder=sorted.map(p=>p.id);
+  list.innerHTML=sorted.map((p,idx)=>{
+    const c=getCat(p.category),open=p._open,visited=p._visited,selected=p._selected;
+    const ot=open?getOpeningTime(p,visitDay):'';
+    const distStr=startLatLng?p._dist.toFixed(1)+' km':'';
+    const prioEmoji=getPriorityEmoji(p);
+    const cls=visited?'plan-item visited-item':(!open?'plan-item closed-item':'plan-item');
+    const selStyle=selected?'border-left:3px solid var(--accent);':'';
+    return `<div class="${cls}" style="${selStyle}" draggable="true" data-idx="${idx}" data-id="${p.id}"
+      ondragstart="onPlanDragStart(event)" ondragover="onPlanDragOver(event)" ondrop="onPlanDrop(event)" ondragend="onPlanDragEnd(event)"
+      onclick="${!visited?`toggleRouteSelect('${p.id}')`:`showToast('Already visited')`}">
+      <div class="drag-handle" onclick="event.stopPropagation()">⠿</div>
+      <div class="checkbox-wrap ${selected?'checked':''}" style="${!open?'border-color:var(--danger)':''}"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600" class="${visited?'plan-item-name':''}">
+          ${c.icon} ${p.name}
+          ${!open?'<span style="color:var(--danger);font-size:11px;margin-left:4px">CLOSED</span>':''}
+          ${visited?'<span style="color:var(--success);font-size:11px;margin-left:4px">VISITED</span>':''}
+        </div>
+        <div style="font-size:11px;color:var(--text-muted)">${p.address||''} ${open&&ot?'· '+ot:''}</div>
+      </div>
+      <div style="font-size:18px;min-width:24px;text-align:center">${prioEmoji}</div>
+      ${distStr?'<div class="plan-distance">'+distStr+'</div>':''}
+    </div>`;
+  }).join('');
+  initPlanMap(sorted);
+}
+
+function toggleRouteSelect(id){
+  if(selectedRouteIds.has(id))selectedRouteIds.delete(id);else selectedRouteIds.add(id);
+  // Re-render preserving drag order if exists
+  if(window._planOrder&&window._planOrder.length) doRenderRouteSelectOrdered();
+  else renderRouteSelect();
+}
 function toggleSelectAll(){
   const vis=prospects.filter(p=>p.status==='new'&&p.lat&&p.lng&&isOpenOnDay(p,visitDay));
   if(selectedRouteIds.size===vis.length)selectedRouteIds.clear();
@@ -1211,10 +1363,35 @@ function generatePlan(){
   renderPlan();
 }
 function renderPlan(){
-  document.getElementById('plan-list').innerHTML=plan.map((r,ri)=>`<div class="route-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div><div style="font-weight:700;font-size:14px;color:var(--accent)">Route ${ri+1} — ${DAYS_FULL[visitDay]}</div><div style="font-size:11px;color:var(--text-muted)">${r.stops.length} stops · ~${r.dist.toFixed(1)} km</div></div><button class="btn btn-secondary btn-sm" onclick="showRoute(${ri})">Show on Map</button></div>
+  document.getElementById('plan-list').innerHTML=plan.map((r,ri)=>`<div class="route-card" id="route-card-${ri}">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div>
+        <div style="font-weight:700;font-size:14px;color:var(--accent)">Route ${ri+1} — ${DAYS_FULL[visitDay]}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${r.stops.length} stops · ~${r.dist.toFixed(1)} km</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" onclick="showRoute(${ri})">Show on Map</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDeleteRoute(${ri})">🗑️</button>
+      </div>
+    </div>
     ${r.stops.map((s,si)=>{const c=getCat(s.category);const ot=getOpeningTime(s,visitDay);return `<div class="route-stop"><div class="stop-number">${si+1}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.icon} ${s.name}</div><div style="font-size:11px;color:var(--text-muted)">${s.address||''}</div></div><div style="font-size:11px;color:var(--text-secondary);text-align:right">🕐 ${ot}${s.phone?'<br>📞 '+s.phone:''}</div></div>`}).join('')}
   </div>`).join('');
+}
+function confirmDeleteRoute(ri){
+  document.getElementById('modal-container').innerHTML=`<div class="modal-overlay" onclick="closeModal()"><div class="modal" style="max-width:400px" onclick="event.stopPropagation()">
+    <div class="modal-title">🗑️ Delete Route ${ri+1}?</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Are you sure you want to delete this route? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="deleteRoute(${ri})">Delete Route</button>
+    </div>
+  </div></div>`;
+}
+function deleteRoute(ri){
+  plan.splice(ri,1);
+  closeModal();
+  renderPlan();
+  showToast('Route deleted');
 }
 function showRoute(ri){
   const r=plan[ri];if(!r||!window.google)return;
@@ -1235,7 +1412,7 @@ function toggleProspectsMap(){
 function renderProspectsMap(){
   if(!window.google||!window.google.maps)return;
   const el=document.getElementById('prospects-map');
-  const STATUS_COLORS={new:'#6B8FA3',visited:'#7B9E6B',follow_up:'#D4A574',won:'#5BBA6F',lost:'#A36B6B'};
+  const STATUS_COLORS={new:'#6B8FA3',visited:'#7B9E6B',follow_up:'#D4A574',won:'#5BBA6F',fell_through:'#A36B6B'};
   const withCoords=prospects.filter(p=>p.lat&&p.lng);
   if(!withCoords.length)return;
   prospectsMap=new google.maps.Map(el,{center:{lat:withCoords[0].lat,lng:withCoords[0].lng},zoom:10,styles:[{elementType:'geometry',stylers:[{color:'#1a1d23'}]},{elementType:'labels.text.fill',stylers:[{color:'#8B95A5'}]},{elementType:'labels.text.stroke',stylers:[{color:'#0F1318'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2D3748'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#161B22'}]}]});
@@ -1291,6 +1468,7 @@ function checkDuplicate(newProspect){
 // ─── Init ───
 loadConfig();
 if(config.readable)document.getElementById('app').classList.add('readable');
+if(config.lightMode)document.getElementById('app').classList.add('light-mode');
 initFirebase();
 initGoogleMaps();
 addLog('Prospect Scout initialized','ok');
