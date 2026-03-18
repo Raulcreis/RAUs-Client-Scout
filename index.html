@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prospect Scout — Photo & Video Client Finder</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔭</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -24,6 +24,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg-primary);color:var(--t
 .nav-tab{padding:8px 18px;border:none;background:transparent;color:var(--text-secondary);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;transition:all .2s}
 .nav-tab:hover{color:var(--text-primary);background:var(--bg-hover)}
 .nav-tab.active{color:var(--accent);background:var(--bg-card);box-shadow:var(--shadow)}
+/* Big nav bar below header */
+.nav-bar{background:var(--bg-secondary);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;gap:8px;justify-content:center}
+.nav-big-btn{padding:14px 32px;border:2px solid var(--border);border-radius:10px;background:transparent;color:var(--text-secondary);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;flex:1;max-width:280px;justify-content:center}
+.nav-big-btn:hover{border-color:var(--accent);color:var(--text-primary);background:var(--bg-hover)}
+.nav-big-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow);box-shadow:0 0 20px rgba(212,165,116,.1)}
+.nav-big-btn .nav-count{font-size:12px;background:var(--bg-hover);padding:2px 8px;border-radius:10px;margin-left:4px}
 .main-content{flex:1;padding:24px 28px;max-width:1400px;width:100%;margin:0 auto}
 .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
@@ -173,8 +179,25 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
 .tag .tag-x{cursor:pointer;opacity:.6;font-size:9px;margin-left:2px}
 .tag .tag-x:hover{opacity:1}
 .tags-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-top:4px}
-.tag-add-btn{font-size:10px;color:var(--accent);cursor:pointer;padding:2px 6px;border:1px dashed var(--border);border-radius:10px;display:inline-flex;align-items:center}
-.tag-add-btn:hover{border-color:var(--accent)}
+.tag-add-btn{font-size:10px;color:#E05555;cursor:pointer;padding:2px 6px;border:1px dashed #E05555;border-radius:10px;display:inline-flex;align-items:center}
+.tag-add-btn:hover{background:rgba(224,85,85,.1)}
+/* Blue links */
+.prospect-contact a{color:#5B9BD5;text-decoration:none}
+.prospect-contact a:hover{text-decoration:underline;color:#7BB8E8}
+/* Priority slider */
+.priority-wrap{display:flex;align-items:center;gap:6px;font-size:12px}
+.priority-slider{-webkit-appearance:none;width:60px;height:4px;background:var(--border);border-radius:2px;outline:none}
+.priority-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--accent);border-radius:50%;cursor:pointer}
+/* Sortable headers */
+.sort-header{cursor:pointer;user-select:none;display:flex;align-items:center;gap:3px}
+.sort-header:hover{color:var(--accent)}
+.sort-arrow{font-size:9px;opacity:.6}
+/* Plan item styles */
+.plan-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--border);transition:all .3s}
+.plan-item.visited-item{background:rgba(91,186,111,.1);border-color:rgba(91,186,111,.2)}
+.plan-item.visited-item .plan-item-name{text-decoration:line-through;opacity:.6}
+.plan-item.closed-item{background:rgba(224,85,85,.08);border-color:rgba(224,85,85,.2)}
+.plan-distance{font-size:11px;color:var(--text-muted);min-width:55px;text-align:right}
 /* Inline category dropdown */
 .cat-tag-select{background:transparent;border:none;color:inherit;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;outline:none;padding:0;appearance:none;-webkit-appearance:none}
 .results-header{display:grid;grid-template-columns:1.4fr .65fr .9fr .65fr .45fr 90px;gap:12px;padding:10px 16px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);background:var(--bg-secondary);border-radius:var(--radius) var(--radius) 0 0}
@@ -193,19 +216,18 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
   <!-- Header -->
   <header class="app-header">
     <div><div class="app-title">Prospect Scout</div><div class="app-subtitle">Photo & Video Client Finder</div></div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('finder')">🔍 Search</button>
-        <button class="nav-tab" id="prospects-tab-btn" onclick="switchTab('prospects')">📋 Prospects</button>
-        <button class="nav-tab" onclick="switchTab('plan')">🗺️ Plan</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div id="fb-indicator" class="pulse hidden" style="width:8px;height:8px;border-radius:50%;background:var(--success)" title="Firebase ligado"></div>
-        <button class="btn btn-ghost" onclick="toggleDebug()" title="Debug">🖥️</button>
-        <button class="btn btn-ghost" onclick="openSettings()">⚙️</button>
-      </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div id="fb-indicator" class="pulse hidden" style="width:8px;height:8px;border-radius:50%;background:var(--success)" title="Firebase connected"></div>
+      <button class="btn btn-ghost" onclick="toggleDebug()" title="Debug">🖥️</button>
+      <button class="btn btn-ghost" onclick="openSettings()">⚙️</button>
     </div>
   </header>
+  <!-- Big Navigation -->
+  <nav class="nav-bar">
+    <button class="nav-big-btn active" id="nav-finder" onclick="switchTab('finder')">🔍 Search</button>
+    <button class="nav-big-btn" id="nav-prospects" onclick="switchTab('prospects')">📋 Prospects <span class="nav-count" id="prospects-count">0</span></button>
+    <button class="nav-big-btn" id="nav-plan" onclick="switchTab('plan')">🗺️ Plan</button>
+  </nav>
 
   <div class="main-content">
     <!-- FINDER TAB -->
@@ -252,45 +274,58 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
       </div>
     </div>
 
-    <!-- PIPELINE TAB -->
+    <!-- PROSPECTS TAB -->
     <div id="tab-prospects" class="hidden">
-      <!-- Follow-up reminders -->
       <div id="overdue-section"></div>
       <div class="stats-bar" id="prospects-stats"></div>
-      <!-- Prospects Map Toggle -->
-      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
         <input class="input-field" id="prospects-search" style="flex:1;min-width:200px" placeholder="🔎 Search by name..." oninput="renderProspects()">
-        <select class="input-field" id="prospects-cat-filter" style="min-width:140px" onchange="renderProspects()"><option value="all">All Categories</option></select>
         <select class="input-field" id="prospects-status-filter" style="min-width:140px" onchange="renderProspects()"><option value="all">All Statuses</option></select>
         <button class="btn btn-secondary btn-sm" onclick="toggleProspectsMap()">🗺️ Map View</button>
       </div>
+      <!-- Category filter chips -->
+      <div class="category-summary" id="prospects-cat-chips"></div>
       <div id="prospects-map-section" class="hidden">
         <div class="map-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#6B8FA3"></div> New</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#7B9E6B"></div> Visited</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#D4A574"></div> Follow-up</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#5BBA6F"></div> Won</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#A36B6B"></div> Lost</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#6B8FA3"></div> 🌱 New</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#7B9E6B"></div> 🏠 Visited</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#D4A574"></div> ✉️ Follow-up</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#5BBA6F"></div> 🤝 Won</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#A36B6B"></div> 👎 Fell through</div>
         </div>
         <div id="prospects-map" class="prospects-map-container"></div>
       </div>
       <div class="card" style="padding:0">
-        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:32px 1.5fr 1fr 1fr .8fr 120px;gap:12px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px">
-          <div>✓</div><div>Name</div><div>Category</div><div>Contact</div><div>Hours</div><div>Status</div>
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:32px 1.5fr .8fr 1fr .7fr .5fr 120px;gap:10px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px">
+          <div>✓</div>
+          <div class="sort-header" onclick="toggleSort('name')">Name <span class="sort-arrow" id="sort-arrow-name"></span></div>
+          <div class="sort-header" onclick="toggleSort('category')">Category <span class="sort-arrow" id="sort-arrow-category"></span></div>
+          <div>Contact</div>
+          <div>Hours</div>
+          <div class="sort-header" onclick="toggleSort('priority')">Priority <span class="sort-arrow" id="sort-arrow-priority"></span></div>
+          <div class="sort-header" onclick="toggleSort('status')">Status <span class="sort-arrow" id="sort-arrow-status"></span></div>
         </div>
         <div class="results-list" id="prospects-list"></div>
       </div>
     </div>
 
-    <!-- ROUTES TAB -->
+    <!-- PLAN TAB -->
     <div id="tab-plan" class="hidden">
       <div class="grid-2">
         <div>
           <div class="card">
             <div class="card-header"><div class="card-title">📍 Smart Visit Planner</div><button class="btn btn-ghost btn-sm" onclick="toggleSelectAll()">All</button></div>
-            <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Select the day you plan to visit. Closed venues will be flagged and excluded from plan.</p>
+            <div class="input-group" style="margin-bottom:8px">
+              <label class="input-label">Starting Location</label>
+              <input class="input-field" id="plan-start-location" placeholder="Your address or starting point..." value="" onchange="startLatLng=null;geocodeStartLocation(()=>doRenderRouteSelect())">
+            </div>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Select day. Closed venues are flagged red at the bottom.</p>
             <div class="day-chips" id="day-chips"></div>
-            <div class="results-list" id="route-select-list" style="max-height:350px"></div>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <button class="btn btn-ghost btn-sm" onclick="sortPlanBy('distance')">↕ Distance</button>
+              <button class="btn btn-ghost btn-sm" onclick="sortPlanBy('priority')">↕ Priority</button>
+            </div>
+            <div class="results-list" id="route-select-list" style="max-height:400px"></div>
           </div>
           <div class="card"><div style="display:flex;gap:12px;align-items:flex-end">
             <div class="input-group" style="flex:1;margin-bottom:0"><label class="input-label">Max stops per route</label><select class="input-field" id="max-stops"><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></div>
@@ -356,11 +391,16 @@ const CATEGORIES = [
   { id:'other', label:'Other', labelPt:'Outros', icon:'📍', color:'#888' },
 ];
 const STATUS_FLOW = [
-  { id:'new', label:'New', labelPt:'Novo', color:'#6B8FA3', bg:'#1a2a33' },
-  { id:'visited', label:'Visited', labelPt:'Visitado', color:'#7B9E6B', bg:'#1a2d1a' },
-  { id:'follow_up', label:'Follow-up Sent', labelPt:'Follow-up Enviado', color:'#D4A574', bg:'#2d2215' },
-  { id:'won', label:'Client Won', labelPt:'Cliente Ganho', color:'#5BBA6F', bg:'#142d1a' },
-  { id:'lost', label:'Lost', labelPt:'Perdido', color:'#A36B6B', bg:'#2d1515' },
+  { id:'new', label:'🌱 New', color:'#6B8FA3', bg:'#1a2a33', order:0 },
+  { id:'visited', label:'🏠 Visited', color:'#7B9E6B', bg:'#1a2d1a', order:1 },
+  { id:'follow_up', label:'✉️ Follow-up Sent', color:'#D4A574', bg:'#2d2215', order:2 },
+  { id:'fell_through', label:'👎 Fell Through', color:'#A36B6B', bg:'#2d1515', order:3 },
+  { id:'won', label:'🤝 Client Won', color:'#5BBA6F', bg:'#142d1a', order:4 },
+];
+const PRIORITIES = [
+  { id:'low', label:'❄️ Low', value:0 },
+  { id:'neutral', label:'🍃 Neutral', value:1 },
+  { id:'high', label:'🔥 High', value:2 },
 ];
 const CATEGORY_RULES = [
   { id:'quinta', kw:['quinta','herdade','solar','palacete','manor','estate','monte'], gt:[] },
@@ -392,7 +432,26 @@ let toastTimer=null;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),3000)}
 
 // ─── Tabs ───
-function switchTab(id){['finder','prospects','plan'].forEach(t=>{document.getElementById('tab-'+t).classList.toggle('hidden',t!==id);document.querySelectorAll('.nav-tab').forEach((btn,i)=>btn.classList.toggle('active',['finder','prospects','plan'][i]===id))});if(id==='prospects')renderProspects();if(id==='plan')renderRouteSelect()}
+function switchTab(id){
+  ['finder','prospects','plan'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden',t!==id));
+  ['nav-finder','nav-prospects','nav-plan'].forEach((n,i)=>{
+    const el=document.getElementById(n);
+    if(el) el.classList.toggle('active',['finder','prospects','plan'][i]===id);
+  });
+  if(id==='prospects')renderProspects();
+  if(id==='plan'){startLatLng=null;geocodeStartLocation(()=>doRenderRouteSelect())}
+}
+
+// ─── Sorting ───
+let sortField=null, sortDir='asc';
+function toggleSort(field){
+  if(sortField===field) sortDir=sortDir==='asc'?'desc':'asc';
+  else{sortField=field;sortDir='asc'}
+  renderProspects();
+}
+function getPriorityValue(p){const v=p.priority;if(v==='high')return 2;if(v==='low')return 0;return 1}
+function getPriorityEmoji(p){const v=p.priority;if(v==='high')return'🔥';if(v==='low')return'❄️';return'🍃'}
+let prospectsCatFilter='all';
 
 // ─── Config / Settings ───
 function loadConfig(){try{config=JSON.parse(localStorage.getItem('ps_config')||'{}');addLog('Config loaded from localStorage','ok')}catch(e){config={}}}
@@ -819,8 +878,8 @@ async function addProspect(p){
   await doAddProspect(p);
 }
 function updateProspectsCount(){
-  const btn=document.getElementById('prospects-tab-btn');
-  if(btn) btn.textContent=`📋 Prospects (${prospects.length})`;
+  const el=document.getElementById('prospects-count');
+  if(el) el.textContent=prospects.length;
 }
 async function updateProspect(id,data){if(db&&!id.startsWith('local_'))await db.collection('prospects').doc(id).update(data);else{const i=prospects.findIndex(p=>p.id===id);if(i>=0)Object.assign(prospects[i],data);renderProspects()}}
 async function deleteProspect(id){if(db&&!id.startsWith('local_'))await db.collection('prospects').doc(id).delete();else{prospects=prospects.filter(p=>p.id!==id);renderProspects()}closeModal();showToast('Deleted')}
@@ -828,26 +887,49 @@ async function deleteProspect(id){if(db&&!id.startsWith('local_'))await db.colle
 // ─── Prospects ───
 function renderProspects(){
   renderOverdueReminders();
-  // Stats
-  const stats={total:prospects.length,new:prospects.filter(p=>p.status==='new').length,visited:prospects.filter(p=>p.status==='visited').length,followUp:prospects.filter(p=>p.status==='follow_up').length,won:prospects.filter(p=>p.status==='won').length};
+  const ft=prospects.filter(p=>p.status==='fell_through').length;
+  const stats={total:prospects.length,new:prospects.filter(p=>p.status==='new').length,visited:prospects.filter(p=>p.status==='visited').length,followUp:prospects.filter(p=>p.status==='follow_up').length,won:prospects.filter(p=>p.status==='won').length,fell:ft};
   document.getElementById('prospects-stats').innerHTML=`
     <div class="stat-item"><div class="stat-value">${stats.total}</div><div class="stat-label">Total</div></div>
-    <div class="stat-item"><div class="stat-value" style="color:#6B8FA3">${stats.new}</div><div class="stat-label">New</div></div>
-    <div class="stat-item"><div class="stat-value" style="color:#7B9E6B">${stats.visited}</div><div class="stat-label">Visited</div></div>
-    <div class="stat-item"><div class="stat-value" style="color:#D4A574">${stats.followUp}</div><div class="stat-label">Follow-up</div></div>
-    <div class="stat-item"><div class="stat-value" style="color:#5BBA6F">${stats.won}</div><div class="stat-label">Clients</div></div>`;
-  // Populate filters once
-  const catF=document.getElementById('prospects-cat-filter');if(catF.options.length<=1){CATEGORIES.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.icon+' '+c.label;catF.appendChild(o)})}
+    <div class="stat-item"><div class="stat-value" style="color:#6B8FA3">${stats.new}</div><div class="stat-label">🌱 New</div></div>
+    <div class="stat-item"><div class="stat-value" style="color:#7B9E6B">${stats.visited}</div><div class="stat-label">🏠 Visited</div></div>
+    <div class="stat-item"><div class="stat-value" style="color:#D4A574">${stats.followUp}</div><div class="stat-label">✉️ Follow-up</div></div>
+    <div class="stat-item"><div class="stat-value" style="color:#5BBA6F">${stats.won}</div><div class="stat-label">🤝 Won</div></div>
+    <div class="stat-item"><div class="stat-value" style="color:#A36B6B">${stats.fell}</div><div class="stat-label">👎 Fell</div></div>`;
+  // Category chips
+  const catCounts={all:prospects.length};prospects.forEach(p=>{catCounts[p.category]=(catCounts[p.category]||0)+1});
+  document.getElementById('prospects-cat-chips').innerHTML=`<button class="chip ${prospectsCatFilter==='all'?'active':''}" onclick="prospectsCatFilter='all';renderProspects()">All (${catCounts.all})</button>`+CATEGORIES.filter(c=>catCounts[c.id]).map(c=>`<button class="chip ${prospectsCatFilter===c.id?'active':''}" onclick="prospectsCatFilter='${c.id}';renderProspects()" style="${prospectsCatFilter===c.id?'border-color:'+c.color+';color:'+c.color+';background:'+c.color+'15':''}">${c.icon} ${c.label} (${catCounts[c.id]})</button>`).join('');
+  // Populate status filter once
   const stF=document.getElementById('prospects-status-filter');if(stF.options.length<=1){STATUS_FLOW.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.label;stF.appendChild(o)})}
   // Filter
-  const fc=catF.value,fs=stF.value,ft=document.getElementById('prospects-search').value.toLowerCase();
-  const filtered=prospects.filter(p=>{if(fc!=='all'&&p.category!==fc)return false;if(fs!=='all'&&p.status!==fs)return false;if(ft&&!p.name.toLowerCase().includes(ft))return false;return true});
+  const fs=stF.value,searchText=document.getElementById('prospects-search').value.toLowerCase();
+  let filtered=prospects.filter(p=>{
+    if(prospectsCatFilter!=='all'&&p.category!==prospectsCatFilter)return false;
+    if(fs!=='all'&&p.status!==fs)return false;
+    if(searchText&&!p.name.toLowerCase().includes(searchText))return false;
+    return true;
+  });
+  // Sort
+  if(sortField){
+    filtered=[...filtered].sort((a,b)=>{
+      let cmp=0;
+      if(sortField==='name') cmp=a.name.localeCompare(b.name);
+      else if(sortField==='category') cmp=(a.category||'').localeCompare(b.category||'');
+      else if(sortField==='status'){const so=STATUS_FLOW.reduce((m,s,i)=>{m[s.id]=i;return m},{});cmp=(so[a.status]||0)-(so[b.status]||0)}
+      else if(sortField==='priority') cmp=getPriorityValue(a)-getPriorityValue(b);
+      return sortDir==='desc'?-cmp:cmp;
+    });
+  }
+  // Update sort arrows
+  ['name','category','status','priority'].forEach(f=>{const el=document.getElementById('sort-arrow-'+f);if(el)el.textContent=sortField===f?(sortDir==='asc'?'▲':'▼'):''});
+
   document.getElementById('prospects-list').innerHTML=filtered.length?filtered.map((p,pidx)=>{
     const c=getCat(p.category),s=getStatus(p.status),checked=['visited','follow_up','won'].includes(p.status);
     const mapsLink=p.mapsUrl||`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
     const phId='ph_'+pidx;
     const tagsHtml=(p.tags&&p.tags.length)?p.tags.map(t=>`<span class="tag" style="background:${t.color}25;color:${t.color};border:1px solid ${t.color}40">${t.label}</span>`).join(''):'';
-    return `<div class="prospect-row" onclick="openDetail('${p.id}')">
+    const prioVal=p.priority==='high'?2:p.priority==='low'?0:1;
+    return `<div class="prospect-row" style="grid-template-columns:32px 1.5fr .8fr 1fr .7fr .5fr 120px;gap:10px" onclick="openDetail('${p.id}')">
       <div class="checkbox-wrap ${checked?'checked':''}" onclick="event.stopPropagation();advanceStatus('${p.id}','${p.status}')"></div>
       <div>
         <div class="prospect-name">${p.name}</div>
@@ -864,10 +946,19 @@ function renderProspects(){
         ${formatHours(p.hours)}
         ${p.hours&&p.hours.length?'<div class="addr-toggle" onclick="document.getElementById(\''+phId+'\').classList.toggle(\'hidden\')">Full week ▾</div><div id="'+phId+'" class="hidden weekly-hours">'+formatWeeklyHours(p.hours)+'</div>':''}
       </div>
+      <div onclick="event.stopPropagation()" style="text-align:center">
+        <div class="priority-wrap"><input type="range" min="0" max="2" value="${prioVal}" class="priority-slider" onchange="updateProspect('${p.id}',{priority:['low','neutral','high'][this.value]})"></div>
+        <div style="font-size:11px">${getPriorityEmoji(p)}</div>
+      </div>
       <div><select class="status-select" style="background:${s.bg};color:${s.color};border-color:${s.color}40" onclick="event.stopPropagation()" onchange="updateProspect('${p.id}',{status:this.value})">${STATUS_FLOW.map(x=>`<option value="${x.id}" ${x.id===p.status?'selected':''}>${x.label}</option>`).join('')}</select></div>
     </div>`}).join(''):'<div class="empty-state"><span>📋</span><p>No prospects yet. Use the Search tab to find businesses.</p></div>';
 }
-function advanceStatus(id,current){const next=current==='new'?'visited':current==='visited'?'follow_up':current;if(next!==current)updateProspect(id,{status:next})}
+function advanceStatus(id,current){
+  const order=['new','visited','follow_up','fell_through','won'];
+  const idx=order.indexOf(current);
+  const next=idx<2?order[idx+1]:current;
+  if(next!==current)updateProspect(id,{status:next});
+}
 function quickTag(id){
   const label=prompt('Tag name:');if(!label||!label.trim())return;
   const colors=['#D4A574','#7B9E6B','#6B8FA3','#C48B9F','#8B6BA3','#A36B6B','#6BA3A3','#5BBA6F','#E05555'];
@@ -1001,23 +1092,89 @@ function renderDayChips(){
   }).join('');
 }
 
+let planSortField='default'; // 'default','distance','priority'
+let planSortDir='asc';
+let startLatLng=null;
+
+function sortPlanBy(field){
+  if(planSortField===field) planSortDir=planSortDir==='asc'?'desc':'asc';
+  else{planSortField=field;planSortDir='asc'}
+  renderRouteSelect();
+}
+
+function geocodeStartLocation(callback){
+  const addr=document.getElementById('plan-start-location').value.trim();
+  if(!addr){startLatLng=null;callback();return}
+  if(!geocoder){callback();return}
+  geocoder.geocode({address:addr},(results,status)=>{
+    if(status==='OK'&&results[0]){
+      startLatLng={lat:results[0].geometry.location.lat(),lng:results[0].geometry.location.lng()};
+      addLog(`Start location: ${addr} (${startLatLng.lat.toFixed(4)}, ${startLatLng.lng.toFixed(4)})`,'ok');
+    } else { startLatLng=null; }
+    callback();
+  });
+}
+
 function renderRouteSelect(){
   renderDayChips();
+  // Geocode starting location if changed
+  const addr=document.getElementById('plan-start-location').value.trim();
+  if(addr&&!startLatLng){geocodeStartLocation(()=>doRenderRouteSelect());return}
+  doRenderRouteSelect();
+}
+
+function doRenderRouteSelect(){
   const list=document.getElementById('route-select-list');
-  const visitable=prospects.filter(p=>p.status==='new'&&p.lat&&p.lng);
-  if(!visitable.length){list.innerHTML='<div class="empty-state" style="padding:24px"><span>📍</span><p>No new prospects available.</p></div>';return}
-  const sorted=[...visitable].sort((a,b)=>{
-    const ao=isOpenOnDay(a,visitDay),bo=isOpenOnDay(b,visitDay);
-    if(ao&&!bo) return -1; if(!ao&&bo) return 1; return 0;
+  const all=prospects.filter(p=>p.lat&&p.lng&&p.status!=='won'&&p.status!=='fell_through');
+  if(!all.length){list.innerHTML='<div class="empty-state" style="padding:24px"><span>📍</span><p>No prospects available.</p></div>';return}
+
+  // Calculate distances from start
+  all.forEach(p=>{
+    p._dist=startLatLng?haversine(startLatLng.lat,startLatLng.lng,p.lat,p.lng):0;
+    p._open=isOpenOnDay(p,visitDay);
+    p._visited=p.status==='visited'||p.status==='follow_up';
   });
+
+  // Sort: visited to bottom, closed to bottom, then by chosen sort
+  let sorted=[...all].sort((a,b)=>{
+    // Visited always at bottom
+    if(a._visited&&!b._visited) return 1;
+    if(!a._visited&&b._visited) return -1;
+    // Closed below open
+    if(a._open&&!b._open) return -1;
+    if(!a._open&&b._open) return 1;
+    // Then by sort field
+    if(planSortField==='distance'){
+      return planSortDir==='asc'?a._dist-b._dist:b._dist-a._dist;
+    }
+    if(planSortField==='priority'){
+      const av=getPriorityValue(a),bv=getPriorityValue(b);
+      return planSortDir==='asc'?bv-av:av-bv; // high first by default
+    }
+    return 0;
+  });
+
   list.innerHTML=sorted.map(p=>{
-    const c=getCat(p.category),open=isOpenOnDay(p,visitDay),ot=open?getOpeningTime(p,visitDay):'';
-    return `<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;${!open?'opacity:.35':''}" onclick="${open?`toggleRouteSelect('${p.id}')`:`showToast('Closed on ${DAYS_FULL[visitDay]}')`}">
+    const c=getCat(p.category);
+    const open=p._open;
+    const visited=p._visited;
+    const ot=open?getOpeningTime(p,visitDay):'';
+    const distStr=startLatLng?p._dist.toFixed(1)+' km':'';
+    const prioEmoji=getPriorityEmoji(p);
+    const itemClass=visited?'plan-item visited-item':(!open?'plan-item closed-item':'plan-item');
+
+    return `<div class="${itemClass}" onclick="${open&&!visited?`toggleRouteSelect('${p.id}')`:`showToast('${visited?'Already visited':('Closed on '+DAYS_FULL[visitDay])}')`}">
       <div class="checkbox-wrap ${selectedRouteIds.has(p.id)?'checked':''}" style="${!open?'border-color:var(--danger)':''}"></div>
       <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${c.icon} ${p.name} ${!open?'<span style="color:var(--danger);font-size:11px">CLOSED</span>':''}</div>
+        <div style="font-size:13px;font-weight:600" class="${visited?'plan-item-name':''}">
+          ${c.icon} ${p.name}
+          ${!open?'<span style="color:var(--danger);font-size:11px;margin-left:4px">CLOSED</span>':''}
+          ${visited?'<span style="color:var(--success);font-size:11px;margin-left:4px">VISITED</span>':''}
+        </div>
         <div style="font-size:11px;color:var(--text-muted)">${p.address||''} ${open&&ot?'· '+ot:''}</div>
       </div>
+      <div style="font-size:14px;min-width:24px;text-align:center" title="${p.priority||'neutral'} priority">${prioEmoji}</div>
+      ${distStr?'<div class="plan-distance">'+distStr+'</div>':''}
     </div>`;
   }).join('');
 }
@@ -1097,7 +1254,7 @@ function renderProspectsMap(){
 // ─── Follow-up Reminders ───
 function renderOverdueReminders(){
   const today=new Date();today.setHours(0,0,0,0);
-  const overdue=prospects.filter(p=>p.followUpDate&&new Date(p.followUpDate)<=today&&p.status!=='won'&&p.status!=='lost');
+  const overdue=prospects.filter(p=>p.followUpDate&&new Date(p.followUpDate)<=today&&p.status!=='won'&&p.status!=='fell_through');
   const upcoming=prospects.filter(p=>{
     if(!p.followUpDate||p.status==='won'||p.status==='lost')return false;
     const d=new Date(p.followUpDate);d.setHours(0,0,0,0);
