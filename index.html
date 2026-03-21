@@ -189,6 +189,18 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
 .priority-slider{-webkit-appearance:none;width:60px;height:6px;background:linear-gradient(to right,#5B9BD5,#7B9E6B,#E05555);border-radius:3px;outline:none;cursor:pointer}
 .priority-slider::-webkit-slider-thumb{-webkit-appearance:none;width:8px;height:8px;background:transparent;cursor:pointer}
 .priority-emoji{font-size:20px;line-height:1;cursor:default}
+/* WhatsApp button */
+.wa-btn{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;background:#25D36620;color:#25D366;border:1px solid #25D36640;text-decoration:none;transition:all .2s}
+.wa-btn:hover{background:#25D36635;color:#25D366}
+/* Priority slider smooth animation */
+.priority-slider{transition:all .15s ease}
+/* Stats bar with percentages */
+.stats-bar-full{display:flex;padding:14px 20px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px}
+.stats-bar-full .stat-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 8px}
+.stats-bar-full .stat-top{display:flex;align-items:center;gap:6px}
+.stats-bar-full .stat-value{font-family:'Sora',sans-serif;font-size:20px;font-weight:700}
+.stats-bar-full .stat-emoji{font-size:16px}
+.stats-bar-full .stat-label{font-size:11px;color:var(--text-muted);text-align:center}
 /* Sortable headers */
 .sort-header{cursor:pointer;user-select:none;display:flex;align-items:center;gap:3px}
 .sort-header:hover{color:var(--accent)}
@@ -265,7 +277,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
           </div>
           <div class="input-group" style="min-width:150px">
             <label class="input-label">Radius: <span id="radius-label">15</span>km</label>
-            <input type="range" id="radius-slider" min="5" max="50" value="15" oninput="document.getElementById('radius-label').textContent=this.value;updateCircle()">
+            <input type="range" id="radius-slider" min="5" max="50" value="15" oninput="onRadiusChange()">
           </div>
           <div class="input-group" style="min-width:auto;flex:none">
             <label class="input-label">&nbsp;</label>
@@ -294,10 +306,11 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;hei
     <!-- PROSPECTS TAB -->
     <div id="tab-prospects" class="hidden">
       <div id="overdue-section"></div>
-      <div class="stats-bar" id="prospects-stats"></div>
+      <div id="prospects-stats"></div>
       <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
         <input class="input-field" id="prospects-search" style="flex:1;min-width:200px" placeholder="🔎 Search by name..." oninput="renderProspects()">
         <select class="input-field" id="prospects-status-filter" style="min-width:140px" onchange="renderProspects()"><option value="all">All Statuses</option></select>
+        <select class="input-field" id="prospects-location-filter" style="min-width:160px" onchange="renderProspects()"><option value="all">All Locations</option></select>
         <button class="btn btn-secondary btn-sm" onclick="toggleProspectsMap()">🗺️ Map View</button>
       </div>
       <!-- Category filter chips -->
@@ -609,73 +622,91 @@ function selectLocation(i){
 document.addEventListener('click',e=>{if(!e.target.closest('.input-group'))document.getElementById('autocomplete-dropdown').classList.add('hidden')});
 
 // ─── SEARCH ───
+let allSearchResultsMax=[]; // full 50km results cache
+
 async function searchAll(){
   if(!gmapsLoaded){showToast('⚠️ Google Maps not loaded — check API key');return}
-  const radius=parseInt(document.getElementById('radius-slider').value);
+  const userRadius=parseInt(document.getElementById('radius-slider').value);
+  const searchRadius=50; // always search max to cache results
   const btn=document.getElementById('search-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> A pesquisar...';
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Searching...';
   document.getElementById('search-progress').classList.remove('hidden');
-  searchResults=[];
+  searchResults=[];allSearchResultsMax=[];
   addLog('═══ SEARCH STARTED ═══','info');
-  addLog(`Center: ${center.lat.toFixed(4)}, ${center.lng.toFixed(4)} | Radius: ${radius}km`,'info');
+  addLog(`Center: ${center.lat.toFixed(4)}, ${center.lng.toFixed(4)} | Search: ${searchRadius}km (display: ${userRadius}km)`,'info');
 
   const service=new google.maps.places.PlacesService(map);
-  const earthR=6371,latD=(radius/earthR)*(180/Math.PI),lngD=latD/Math.cos(center.lat*Math.PI/180);
+  const earthR=6371,latD=(searchRadius/earthR)*(180/Math.PI),lngD=latD/Math.cos(center.lat*Math.PI/180);
   const bounds=new google.maps.LatLngBounds(new google.maps.LatLng(center.lat-latD,center.lng-lngD),new google.maps.LatLng(center.lat+latD,center.lng+lngD));
   const seen=new Set(),raw=[];
 
   for(let i=0;i<BROAD_QUERIES.length;i++){
     const q=BROAD_QUERIES[i];
-    setProgress(i+1,BROAD_QUERIES.length,`A pesquisar: "${q}"... (${raw.length} encontrados)`);
+    setProgress(i+1,BROAD_QUERIES.length,`Searching: "${q}"...`);
     addLog(`[${i+1}/${BROAD_QUERIES.length}] "${q}"...`,'info');
     await new Promise(resolve=>{
       const timeout=setTimeout(()=>{addLog(`  ⏱️ Timeout for "${q}"`,'warn');resolve()},10000);
       service.textSearch({query:q,bounds},(res,st)=>{
         clearTimeout(timeout);
         addLog(`  Status: ${st} | Results: ${res?res.length:0}`,st==='OK'?'ok':'warn');
-        if(st==='OK'&&res){let added=0;res.forEach(p=>{if(seen.has(p.place_id))return;const d=haversine(center.lat,center.lng,p.geometry.location.lat(),p.geometry.location.lng());if(d<=radius){seen.add(p.place_id);raw.push({place_id:p.place_id,name:p.name,address:p.formatted_address,lat:p.geometry.location.lat(),lng:p.geometry.location.lng(),rating:p.rating,distance:d,types:p.types||[]});added++}});addLog(`  → ${added} new (${raw.length} total)`,'ok')}
+        if(st==='OK'&&res){res.forEach(p=>{if(seen.has(p.place_id))return;const d=haversine(center.lat,center.lng,p.geometry.location.lat(),p.geometry.location.lng());if(d<=searchRadius){seen.add(p.place_id);raw.push({place_id:p.place_id,name:p.name,address:p.formatted_address,lat:p.geometry.location.lat(),lng:p.geometry.location.lng(),rating:p.rating,distance:d,types:p.types||[]})}})}
         resolve();
       });
     });
     await new Promise(r=>setTimeout(r,300));
   }
 
-  if(!raw.length){addLog('No results found','warn');showToast('⚠️ No businesses found. Try increasing the radius.');resetSearchBtn();return}
+  if(!raw.length){addLog('No results found','warn');showToast('⚠️ No businesses found.');resetSearchBtn();return}
 
-  // Classify
   addLog(`Classifying ${raw.length} businesses...`,'info');
   const classified=raw.map(p=>({...p,category:autoClassify(p)}));
 
-  // Get details
   addLog(`Fetching details...`,'info');
   const detailed=[];
   for(let i=0;i<classified.length;i+=5){
     const batch=classified.slice(i,i+5);
-    setProgress(Math.min(i+5,classified.length),classified.length,`A obter detalhes: ${Math.min(i+5,classified.length)} de ${classified.length}...`);
+    setProgress(Math.min(i+5,classified.length),classified.length,`Fetching details...`);
     const res=await Promise.all(batch.map(p=>new Promise(resolve=>{
       const t=setTimeout(()=>resolve({...p,phone:'',website:'',hours:[]}),8000);
       service.getDetails({placeId:p.place_id,fields:['formatted_phone_number','website','opening_hours','international_phone_number','url']},(det,st)=>{
         clearTimeout(t);
-        if(st==='OK'&&det){const hrs=det.opening_hours?.periods?.map(x=>({day:x.open?.day,open:`${String(x.open?.hours||0).padStart(2,'0')}:${String(x.open?.minutes||0).padStart(2,'0')}`,close:x.close?`${String(x.close.hours||0).padStart(2,'0')}:${String(x.close.minutes||0).padStart(2,'0')}`:'24:00'}))||[];resolve({...p,phone:det.international_phone_number||det.formatted_phone_number||'',website:det.website||'',mapsUrl:det.url||'',hours:hrs})}
-        else resolve({...p,phone:'',website:'',hours:[]});
+        if(st==='OK'&&det){const hrs=det.opening_hours?.periods?.map(x=>({day:x.open?.day,open:`${String(x.open?.hours||0).padStart(2,'0')}:${String(x.open?.minutes||0).padStart(2,'0')}`,close:x.close?`${String(x.close.hours||0).padStart(2,'0')}:${String(x.close.minutes||0).padStart(2,'0')}`:'24:00'}))||[];resolve({...p,phone:det.international_phone_number||det.formatted_phone_number||'',website:det.website||'',mapsUrl:det.url||'',hours:hrs,searchLocation:document.getElementById('location-input').value,searchRadius:userRadius})}
+        else resolve({...p,phone:'',website:'',hours:[],searchLocation:document.getElementById('location-input').value,searchRadius:userRadius});
       });
     })));
     detailed.push(...res);
     await new Promise(r=>setTimeout(r,300));
   }
 
-  // Place markers
-  markers.forEach(m=>m.setMap(null));markers=[];
-  detailed.forEach(p=>{const c=getCat(p.category);markers.push(new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map,title:p.name,icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:c.color,fillOpacity:.9,strokeWeight:2,strokeColor:'#0F1318'}}))});
-
-  searchResults=detailed.sort((a,b)=>a.distance-b.distance);
+  // Store full 50km cache
+  allSearchResultsMax=detailed.sort((a,b)=>a.distance-b.distance);
+  // Filter to user's selected radius for display
+  searchResults=allSearchResultsMax.filter(r=>r.distance<=userRadius);
   filterCat='all';
-  addLog(`═══ DONE: ${detailed.length} businesses ═══`,'ok');
-  showToast(`✅ ${detailed.length} businesses found and classified`);
-  // Save search to history
-  saveSearchHistory(document.getElementById('location-input').value, radius, detailed);
+  addLog(`═══ DONE: ${allSearchResultsMax.length} total (${searchResults.length} within ${userRadius}km) ═══`,'ok');
+
+  // Place markers for filtered results
+  markers.forEach(m=>m.setMap(null));markers=[];
+  searchResults.forEach(p=>{const c=getCat(p.category);markers.push(new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map,title:p.name,icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:c.color,fillOpacity:.9,strokeWeight:2,strokeColor:'#0F1318'}}))});
+
+  // Save to history with user radius
+  saveSearchHistory(document.getElementById('location-input').value, userRadius, searchResults, allSearchResultsMax);
   renderResults();
   resetSearchBtn();
+  showToast(`✅ ${searchResults.length} businesses found within ${userRadius}km`);
+}
+
+// Re-filter when radius slider changes (no API call)
+function onRadiusChange(){
+  const r=parseInt(document.getElementById('radius-slider').value);
+  document.getElementById('radius-label').textContent=r;
+  updateCircle();
+  if(allSearchResultsMax.length){
+    searchResults=allSearchResultsMax.filter(x=>x.distance<=r);
+    markers.forEach(m=>m.setMap(null));markers=[];
+    searchResults.forEach(p=>{const c=getCat(p.category);markers.push(new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map,title:p.name,icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:c.color,fillOpacity:.9,strokeWeight:2,strokeColor:'#0F1318'}}))});
+    renderResults();
+  }
 }
 
 function setProgress(curr,total,text){
@@ -688,7 +719,7 @@ function resetSearchBtn(){const b=document.getElementById('search-btn');b.disabl
 function getSearchHistory(){
   try{return JSON.parse(localStorage.getItem('ps_search_history')||'[]')}catch(e){return[]}
 }
-function saveSearchHistory(location, radius, results){
+function saveSearchHistory(location, radius, results, allResults){
   const history=getSearchHistory();
   const entry={
     id: Date.now(),
@@ -697,7 +728,7 @@ function saveSearchHistory(location, radius, results){
     date: new Date().toISOString(),
     resultCount: results.length,
     results: results,
-    // Category breakdown
+    allResults: allResults||results, // full 50km cache
     categories: {}
   };
   results.forEach(r=>{entry.categories[r.category]=(entry.categories[r.category]||0)+1});
@@ -911,27 +942,41 @@ function renderProspects(){
   renderOverdueReminders();
   const ft=prospects.filter(p=>p.status==='fell_through').length;
   const stats={total:prospects.length,new:prospects.filter(p=>p.status==='new').length,visited:prospects.filter(p=>p.status==='visited').length,followUp:prospects.filter(p=>p.status==='follow_up').length,won:prospects.filter(p=>p.status==='won').length,fell:ft};
-  document.getElementById('prospects-stats').className='stats-bar-even';
+  const pct=(v)=>stats.total?Math.round(v/stats.total*100):0;
+
+  document.getElementById('prospects-stats').className='stats-bar-full';
   document.getElementById('prospects-stats').innerHTML=`
-    <div class="stat-item"><div class="stat-value">${stats.total}</div></div>
-    <div class="stat-item"><span class="stat-emoji">🌱</span><div class="stat-value" style="color:#6B8FA3">${stats.new}</div></div>
-    <div class="stat-item"><span class="stat-emoji">🏠</span><div class="stat-value" style="color:#7B9E6B">${stats.visited}</div></div>
-    <div class="stat-item"><span class="stat-emoji">✉️</span><div class="stat-value" style="color:#D4A574">${stats.followUp}</div></div>
-    <div class="stat-item"><span class="stat-emoji">🤝</span><div class="stat-value" style="color:#5BBA6F">${stats.won}</div></div>
-    <div class="stat-item"><span class="stat-emoji">👎</span><div class="stat-value" style="color:#A36B6B">${stats.fell}</div></div>`;
+    <div class="stat-item"><div class="stat-top"><div class="stat-value">${stats.total}</div></div><div class="stat-label">Total</div></div>
+    <div class="stat-item"><div class="stat-top"><div class="stat-value" style="color:#6B8FA3">${stats.new}</div><span class="stat-emoji">🌱</span></div><div class="stat-label">New (~${pct(stats.new)}%)</div></div>
+    <div class="stat-item"><div class="stat-top"><div class="stat-value" style="color:#7B9E6B">${stats.visited}</div><span class="stat-emoji">🏠</span></div><div class="stat-label">Visited (${pct(stats.visited)}%)</div></div>
+    <div class="stat-item"><div class="stat-top"><div class="stat-value" style="color:#D4A574">${stats.followUp}</div><span class="stat-emoji">✉️</span></div><div class="stat-label">Follow-up (${pct(stats.followUp)}%)</div></div>
+    <div class="stat-item"><div class="stat-top"><div class="stat-value" style="color:#5BBA6F">${stats.won}</div><span class="stat-emoji">🤝</span></div><div class="stat-label">Won (${pct(stats.won)}%)</div></div>
+    <div class="stat-item"><div class="stat-top"><div class="stat-value" style="color:#A36B6B">${stats.fell}</div><span class="stat-emoji">👎</span></div><div class="stat-label">Fell (${pct(stats.fell)}%)</div></div>`;
+
   // Category chips
   const catCounts={all:prospects.length};prospects.forEach(p=>{catCounts[p.category]=(catCounts[p.category]||0)+1});
   document.getElementById('prospects-cat-chips').innerHTML=`<button class="chip ${prospectsCatFilter==='all'?'active':''}" onclick="prospectsCatFilter='all';renderProspects()">All (${catCounts.all})</button>`+CATEGORIES.filter(c=>catCounts[c.id]).map(c=>`<button class="chip ${prospectsCatFilter===c.id?'active':''}" onclick="prospectsCatFilter='${c.id}';renderProspects()" style="${prospectsCatFilter===c.id?'border-color:'+c.color+';color:'+c.color+';background:'+c.color+'15':''}">${c.icon} ${c.label} (${catCounts[c.id]})</button>`).join('');
-  // Populate status filter once
+
+  // Location filter dropdown
+  const locF=document.getElementById('prospects-location-filter');
+  const locations=new Map();
+  prospects.forEach(p=>{if(p.searchLocation){const key=p.searchLocation+(p.searchRadius?' ('+p.searchRadius+'km)':'');locations.set(key,(locations.get(key)||0)+1)}});
+  const curLocVal=locF.value;
+  locF.innerHTML='<option value="all">All Locations</option>'+Array.from(locations.entries()).map(([k,v])=>`<option value="${k}" ${k===curLocVal?'selected':''}>${k} (${v})</option>`).join('');
+
+  // Status filter
   const stF=document.getElementById('prospects-status-filter');if(stF.options.length<=1){STATUS_FLOW.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.label;stF.appendChild(o)})}
+
   // Filter
-  const fs=stF.value,searchText=document.getElementById('prospects-search').value.toLowerCase();
+  const fs=stF.value,locFilter=locF.value,searchText=document.getElementById('prospects-search').value.toLowerCase();
   let filtered=prospects.filter(p=>{
     if(prospectsCatFilter!=='all'&&p.category!==prospectsCatFilter)return false;
     if(fs!=='all'&&p.status!==fs)return false;
+    if(locFilter!=='all'){const pLoc=(p.searchLocation||'')+(p.searchRadius?' ('+p.searchRadius+'km)':'');if(pLoc!==locFilter)return false}
     if(searchText&&!p.name.toLowerCase().includes(searchText))return false;
     return true;
   });
+
   // Sort
   if(sortField){
     filtered=[...filtered].sort((a,b)=>{
@@ -943,7 +988,6 @@ function renderProspects(){
       return sortDir==='desc'?-cmp:cmp;
     });
   }
-  // Update sort arrows
   ['name','category','status','priority'].forEach(f=>{const el=document.getElementById('sort-arrow-'+f);if(el)el.textContent=sortField===f?(sortDir==='asc'?'▲':'▼'):''});
 
   document.getElementById('prospects-list').innerHTML=filtered.length?filtered.map((p,pidx)=>{
@@ -952,6 +996,9 @@ function renderProspects(){
     const phId='ph_'+pidx;
     const tagsHtml=(p.tags&&p.tags.length)?p.tags.map(t=>`<span class="tag" style="background:${t.color}25;color:${t.color};border:1px solid ${t.color}40">${t.label}</span>`).join(''):'';
     const prioVal=p.priority==='high'?2:p.priority==='low'?0:1;
+    // WhatsApp link
+    const waNum=p.whatsapp||'';
+    const waLink=waNum?`https://wa.me/${waNum.replace(/[^0-9]/g,'')}`:'';
     return `<div class="prospect-row" style="grid-template-columns:32px 1.5fr .8fr 1fr .7fr .5fr 120px;gap:10px" onclick="openDetail('${p.id}')">
       <div class="checkbox-wrap ${checked?'checked':''}" onclick="event.stopPropagation();advanceStatus('${p.id}','${p.status}')"></div>
       <div>
@@ -964,13 +1011,14 @@ function renderProspects(){
         ${p.phone?'<div>📞 '+p.phone+'</div>':''}
         ${p.website?'<div><a href="'+p.website+'" target="_blank">🌐 Website</a></div>':''}
         <div><a href="${mapsLink}" target="_blank">📍 Maps</a></div>
+        ${waLink?`<a href="${waLink}" target="_blank" class="wa-btn">💬 WhatsApp</a>`:`<span class="wa-btn" onclick="event.stopPropagation();addWhatsApp('${p.id}')">💬 + WhatsApp</span>`}
       </div>
       <div style="font-size:12px;color:var(--text-muted)" onclick="event.stopPropagation()">
         ${formatHours(p.hours)}
         ${p.hours&&p.hours.length?'<div class="addr-toggle" onclick="document.getElementById(\''+phId+'\').classList.toggle(\'hidden\')">Full week ▾</div><div id="'+phId+'" class="hidden weekly-hours">'+formatWeeklyHours(p.hours)+'</div>':''}
       </div>
       <div onclick="event.stopPropagation()" style="text-align:center">
-        <div class="priority-wrap"><div class="priority-emoji">${getPriorityEmoji(p)}</div><input type="range" min="0" max="2" value="${prioVal}" class="priority-slider" onchange="updateProspect('${p.id}',{priority:['low','neutral','high'][this.value]})"></div>
+        <div class="priority-wrap"><div class="priority-emoji">${getPriorityEmoji(p)}</div><input type="range" min="0" max="2" value="${prioVal}" class="priority-slider" oninput="this.previousElementSibling.textContent=['❄️','🍃','🔥'][this.value]" onchange="updateProspect('${p.id}',{priority:['low','neutral','high'][this.value]})"></div>
       </div>
       <div><select class="status-select" style="background:${s.bg};color:${s.color};border-color:${s.color}40" onclick="event.stopPropagation()" onchange="updateProspect('${p.id}',{status:this.value})">${STATUS_FLOW.map(x=>`<option value="${x.id}" ${x.id===p.status?'selected':''}>${x.label}</option>`).join('')}</select></div>
     </div>`}).join(''):'<div class="empty-state"><span>📋</span><p>No prospects yet. Use the Search tab to find businesses.</p></div>';
@@ -990,6 +1038,41 @@ function quickTag(id){
   tags.push({label:label.trim(),color});
   updateProspect(id,{tags});
   showToast('🏷️ Tag added: '+label.trim());
+}
+function addWhatsApp(id){
+  const p=prospects.find(x=>x.id===id);if(!p)return;
+  const existingPhone=(p.phone||'').replace(/[^0-9]/g,'');
+  document.getElementById('modal-container').innerHTML=`<div class="modal-overlay" onclick="closeModal()"><div class="modal" style="max-width:400px" onclick="event.stopPropagation()">
+    <div class="modal-title">💬 Add WhatsApp Number</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${p.name}</p>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <select class="input-field" id="wa-country" style="width:100px">
+        <option value="351" selected>🇵🇹 +351</option>
+        <option value="55">🇧🇷 +55</option>
+        <option value="34">🇪🇸 +34</option>
+        <option value="44">🇬🇧 +44</option>
+        <option value="1">🇺🇸 +1</option>
+        <option value="33">🇫🇷 +33</option>
+        <option value="49">🇩🇪 +49</option>
+        <option value="39">🇮🇹 +39</option>
+      </select>
+      <input class="input-field" id="wa-number" style="flex:1" placeholder="912 345 678" value="${existingPhone}">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWhatsApp('${p.id}')" style="background:#25D366">💬 Save & Open</button>
+    </div>
+  </div></div>`;
+}
+function saveWhatsApp(id){
+  const country=document.getElementById('wa-country').value;
+  const num=document.getElementById('wa-number').value.replace(/[^0-9]/g,'');
+  if(!num){showToast('Enter a number');return}
+  const full=country+num;
+  updateProspect(id,{whatsapp:full});
+  closeModal();
+  window.open('https://wa.me/'+full,'_blank');
+  showToast('💬 WhatsApp saved');
 }
 function openDetail(id){
   const p=prospects.find(x=>x.id===id);if(!p)return;const c=getCat(p.category);
